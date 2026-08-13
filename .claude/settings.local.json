@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"/d/Anti-Doping SIH/backend/app/routes\")",
+      "Bash(npm -v)",
+      "Bash(npm install *)",
+      "Bash(rm -f src/App.css src/assets/react.svg src/assets/vite.svg src/assets/hero.png)",
+      "Bash(mkdir -p src/components src/api src/types)",
+      "Bash(npm run *)"
+    ],
+    "additionalDirectories": [
+      "D:\\Anti-Doping SIH\\backend\\app"
+    ]
+  }
+}
