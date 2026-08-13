@@ -55,12 +55,16 @@ These apply to every endpoint below unless stated otherwise.
     request bodies or query params.
 - **Biomarker keys**: wherever a biomarker is named generically, the key
   is one of `"hb" | "hct" | "ret_pct" | "off_score" | "te_ratio"`.
-- **OFF-score formula**: `off_score = hb - 60 * sqrt(ret_pct)`, computed
-  server-side, exactly per spec §8. This is applied literally as given —
-  note the result is a large negative number at realistic
-  `hb`/`ret_pct` values (e.g. `hb=14.5, ret_pct=1.2` → `off_score ≈
-  -51.2`), unlike the standard clinical OFF-score which uses Hb in g/L.
-  Flagged below in case the intent was g/L.
+- **OFF-score formula**: `off_score = (hb_g_dL * 10) - 60 * sqrt(ret_pct)`,
+  computed server-side. The raw `hb` field is stored and displayed in
+  g/dL everywhere (matches spec §8's raw biomarker unit) — but the
+  OFF-score formula itself requires Hb in g/L, so the stored g/dL value
+  is converted (×10) before applying the formula. *Corrected
+  assumption, not a literal reading of spec §8 — see item 9 below.*
+  Example: `hb=15.0, ret_pct=1.0` → `off_score = 150 - 60*sqrt(1.0) =
+  90.0`, within the realistic clinical OFF-score range (~80–105) rather
+  than the large negative values a literal g/dL reading of spec §8
+  would produce (e.g. `hb=15.0, ret_pct=1.0` → `15.0 - 60 = -45.0`).
 
 ---
 
@@ -592,10 +596,13 @@ please confirm or correct before we lock the contract:
    `action === "close_case"`. There's no separate decisions table in
    the schema, so this mapping is inferred.
 8. **`cost` units**: abstract resource-cost unit, not real currency.
-9. **OFF-score formula taken literally** with `hb` in g/dL as given in
-   spec §8, producing large negative values — flagged above in case the
-   intended formula used Hb in g/L (which would give the ~80–105 range
-   the standard clinical OFF-score normally falls in).
+9. **OFF-score formula corrected** to convert Hb from g/dL to g/L
+   before applying the formula (`off_score = hb_g_dL*10 -
+   60*sqrt(ret_pct)`), giving the standard clinical OFF-score range
+   (~80–105) instead of the large negative values a literal g/dL
+   reading of spec §8 produces. This diverges from a literal reading of
+   spec §8's raw formula but was confirmed as the intended convention;
+   `docs/schema.md` is the authoritative statement of it.
 10. **404 vs empty-list**: `404` is reserved for "athlete/case id
     doesn't exist"; an existing athlete with zero anomalies/events
     returns `200` with an empty array, not `404`.

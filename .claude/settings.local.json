@@ -7,7 +7,12 @@
       "Bash(rm -f src/App.css src/assets/react.svg src/assets/vite.svg src/assets/hero.png)",
       "Bash(mkdir -p src/components src/api src/types)",
       "Bash(npm run *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(\"/d/Anti-Doping SIH/backend/venv/Scripts/python.exe\" --version)",
+      "Bash(\"/d/Anti-Doping SIH/backend/venv/Scripts/python.exe\" -c \"import sqlalchemy; print\\(sqlalchemy.__version__\\)\")",
+      "Bash(rm -f app.db)",
+      "Bash(./venv/Scripts/python.exe -m app.db.init_db)",
+      "Bash(./venv/Scripts/python.exe -c ' *)"
     ],
     "additionalDirectories": [
       "D:\\Anti-Doping SIH\\backend\\app"

@@ -8,10 +8,10 @@
     "method": "mahalanobis_baseline",
     "created_at": "2026-07-30T09:15:00Z",
     "contributing_biomarkers": [
-      { "biomarker": "off_score", "observed_value": -30.1, "population_mean": -58.0, "population_std": 8.0, "z_score": 3.49, "contribution_pct": 27.8 },
-      { "biomarker": "hct", "observed_value": 48.0, "population_mean": 41.0, "population_std": 2.5, "z_score": 2.8, "contribution_pct": 22.3 },
-      { "biomarker": "hb", "observed_value": 16.4, "population_mean": 13.9, "population_std": 1.0, "z_score": 2.5, "contribution_pct": 19.9 },
-      { "biomarker": "ret_pct", "observed_value": 0.6, "population_mean": 1.2, "population_std": 0.3, "z_score": -2.0, "contribution_pct": 15.9 },
+      { "biomarker": "off_score", "observed_value": 117.5, "population_mean": 73.3, "population_std": 12.9, "z_score": 3.43, "contribution_pct": 27.5 },
+      { "biomarker": "hct", "observed_value": 48.0, "population_mean": 41.0, "population_std": 2.5, "z_score": 2.8, "contribution_pct": 22.4 },
+      { "biomarker": "hb", "observed_value": 16.4, "population_mean": 13.9, "population_std": 1.0, "z_score": 2.5, "contribution_pct": 20.0 },
+      { "biomarker": "ret_pct", "observed_value": 0.6, "population_mean": 1.2, "population_std": 0.3, "z_score": -2.0, "contribution_pct": 16.0 },
       { "biomarker": "te_ratio", "observed_value": 1.9, "population_mean": 1.2, "population_std": 0.4, "z_score": 1.75, "contribution_pct": 14.0 }
     ]
   },
@@ -24,11 +24,11 @@
     "method": "mahalanobis_baseline",
     "created_at": "2026-07-15T10:00:00Z",
     "contributing_biomarkers": [
-      { "biomarker": "off_score", "observed_value": -34.4, "population_mean": -58.0, "population_std": 8.0, "z_score": 2.95, "contribution_pct": 30.7 },
-      { "biomarker": "hct", "observed_value": 46.2, "population_mean": 41.0, "population_std": 2.5, "z_score": 2.08, "contribution_pct": 21.7 },
-      { "biomarker": "hb", "observed_value": 15.8, "population_mean": 13.9, "population_std": 1.0, "z_score": 1.9, "contribution_pct": 19.8 },
-      { "biomarker": "ret_pct", "observed_value": 0.7, "population_mean": 1.2, "population_std": 0.3, "z_score": -1.67, "contribution_pct": 17.4 },
-      { "biomarker": "te_ratio", "observed_value": 1.6, "population_mean": 1.2, "population_std": 0.4, "z_score": 1.0, "contribution_pct": 10.4 }
+      { "biomarker": "off_score", "observed_value": 107.8, "population_mean": 73.3, "population_std": 12.9, "z_score": 2.67, "contribution_pct": 28.6 },
+      { "biomarker": "hct", "observed_value": 46.2, "population_mean": 41.0, "population_std": 2.5, "z_score": 2.08, "contribution_pct": 22.3 },
+      { "biomarker": "hb", "observed_value": 15.8, "population_mean": 13.9, "population_std": 1.0, "z_score": 1.9, "contribution_pct": 20.4 },
+      { "biomarker": "ret_pct", "observed_value": 0.7, "population_mean": 1.2, "population_std": 0.3, "z_score": -1.67, "contribution_pct": 17.9 },
+      { "biomarker": "te_ratio", "observed_value": 1.6, "population_mean": 1.2, "population_std": 0.4, "z_score": 1.0, "contribution_pct": 10.7 }
     ]
   },
   {
@@ -40,11 +40,11 @@
     "method": "mahalanobis_baseline",
     "created_at": "2026-07-01T10:00:00Z",
     "contributing_biomarkers": [
-      { "biomarker": "off_score", "observed_value": -38.6, "population_mean": -58.0, "population_std": 8.0, "z_score": 2.43, "contribution_pct": 34.2 },
-      { "biomarker": "ret_pct", "observed_value": 0.8, "population_mean": 1.2, "population_std": 0.3, "z_score": -1.33, "contribution_pct": 18.7 },
-      { "biomarker": "hct", "observed_value": 44.5, "population_mean": 41.0, "population_std": 2.5, "z_score": 1.4, "contribution_pct": 19.7 },
-      { "biomarker": "hb", "observed_value": 15.1, "population_mean": 13.9, "population_std": 1.0, "z_score": 1.2, "contribution_pct": 16.9 },
-      { "biomarker": "te_ratio", "observed_value": 1.5, "population_mean": 1.2, "population_std": 0.4, "z_score": 0.75, "contribution_pct": 10.5 }
+      { "biomarker": "off_score", "observed_value": 97.3, "population_mean": 73.3, "population_std": 12.9, "z_score": 1.86, "contribution_pct": 28.4 },
+      { "biomarker": "ret_pct", "observed_value": 0.8, "population_mean": 1.2, "population_std": 0.3, "z_score": -1.33, "contribution_pct": 20.3 },
+      { "biomarker": "hct", "observed_value": 44.5, "population_mean": 41.0, "population_std": 2.5, "z_score": 1.4, "contribution_pct": 21.4 },
+      { "biomarker": "hb", "observed_value": 15.1, "population_mean": 13.9, "population_std": 1.0, "z_score": 1.2, "contribution_pct": 18.3 },
+      { "biomarker": "te_ratio", "observed_value": 1.5, "population_mean": 1.2, "population_std": 0.4, "z_score": 0.75, "contribution_pct": 11.5 }
     ]
   }
 ]
