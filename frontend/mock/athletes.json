@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "name": "Elena Marchetti",
+    "sport": "Cycling",
+    "age": 27,
+    "latest_anomaly_score": 0.82,
+    "latest_uncertainty_score": 0.35,
+    "priority_score": 0.82,
+    "last_sample_date": "2026-07-30"
+  },
+  {
+    "id": 2,
+    "name": "Sofia Petrova",
+    "sport": "Athletics",
+    "age": 29,
+    "latest_anomaly_score": 0.71,
+    "latest_uncertainty_score": 0.44,
+    "priority_score": 0.71,
+    "last_sample_date": "2026-08-02"
+  },
+  {
+    "id": 3,
+    "name": "Lucas Ferreira",
+    "sport": "Cycling",
+    "age": 31,
+    "latest_anomaly_score": 0.58,
+    "latest_uncertainty_score": 0.51,
+    "priority_score": 0.58,
+    "last_sample_date": "2026-07-28"
+  },
+  {
+    "id": 4,
+    "name": "Kwame Boateng",
+    "sport": "Athletics",
+    "age": 24,
+    "latest_anomaly_score": 0.33,
+    "latest_uncertainty_score": 0.22,
+    "priority_score": 0.33,
+    "last_sample_date": "2026-08-05"
+  },
+  {
+    "id": 5,
+    "name": "Yuki Tanaka",
+    "sport": "Swimming",
+    "age": 22,
+    "latest_anomaly_score": 0.12,
+    "latest_uncertainty_score": 0.18,
+    "priority_score": 0.12,
+    "last_sample_date": "2026-08-01"
+  }
+]

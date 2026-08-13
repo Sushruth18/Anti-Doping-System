@@ -6,7 +6,8 @@
       "Bash(npm install *)",
       "Bash(rm -f src/App.css src/assets/react.svg src/assets/vite.svg src/assets/hero.png)",
       "Bash(mkdir -p src/components src/api src/types)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(npx tsc *)"
     ],
     "additionalDirectories": [
       "D:\\Anti-Doping SIH\\backend\\app"

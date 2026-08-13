@@ -1,0 +1,61 @@
+{
+  "athlete_id": 1,
+  "ci_level": 0.95,
+  "series": [
+    {
+      "biomarker": "hb",
+      "unit": "g/dL",
+      "points": [
+        { "date": "2026-06-01", "observed": 14.2, "expected": 14.3, "ci_lower": 13.1, "ci_upper": 15.5 },
+        { "date": "2026-06-15", "observed": 14.5, "expected": 14.3, "ci_lower": 13.1, "ci_upper": 15.5 },
+        { "date": "2026-07-01", "observed": 15.1, "expected": 14.3, "ci_lower": 13.1, "ci_upper": 15.5 },
+        { "date": "2026-07-15", "observed": 15.8, "expected": 14.3, "ci_lower": 13.1, "ci_upper": 15.5 },
+        { "date": "2026-07-30", "observed": 16.4, "expected": 14.3, "ci_lower": 13.1, "ci_upper": 15.5 }
+      ]
+    },
+    {
+      "biomarker": "hct",
+      "unit": "%",
+      "points": [
+        { "date": "2026-06-01", "observed": 42.1, "expected": 42.5, "ci_lower": 39.0, "ci_upper": 46.0 },
+        { "date": "2026-06-15", "observed": 42.8, "expected": 42.5, "ci_lower": 39.0, "ci_upper": 46.0 },
+        { "date": "2026-07-01", "observed": 44.5, "expected": 42.5, "ci_lower": 39.0, "ci_upper": 46.0 },
+        { "date": "2026-07-15", "observed": 46.2, "expected": 42.5, "ci_lower": 39.0, "ci_upper": 46.0 },
+        { "date": "2026-07-30", "observed": 48.0, "expected": 42.5, "ci_lower": 39.0, "ci_upper": 46.0 }
+      ]
+    },
+    {
+      "biomarker": "ret_pct",
+      "unit": "%",
+      "points": [
+        { "date": "2026-06-01", "observed": 1.1, "expected": 1.05, "ci_lower": 0.56, "ci_upper": 1.54 },
+        { "date": "2026-06-15", "observed": 1.0, "expected": 1.05, "ci_lower": 0.56, "ci_upper": 1.54 },
+        { "date": "2026-07-01", "observed": 0.8, "expected": 1.05, "ci_lower": 0.56, "ci_upper": 1.54 },
+        { "date": "2026-07-15", "observed": 0.7, "expected": 1.05, "ci_lower": 0.56, "ci_upper": 1.54 },
+        { "date": "2026-07-30", "observed": 0.6, "expected": 1.05, "ci_lower": 0.56, "ci_upper": 1.54 }
+      ]
+    },
+    {
+      "biomarker": "off_score",
+      "unit": "score",
+      "points": [
+        { "date": "2026-06-01", "observed": -48.7, "expected": -47.2, "ci_lower": -59.0, "ci_upper": -35.4 },
+        { "date": "2026-06-15", "observed": -45.5, "expected": -47.2, "ci_lower": -59.0, "ci_upper": -35.4 },
+        { "date": "2026-07-01", "observed": -38.6, "expected": -47.2, "ci_lower": -59.0, "ci_upper": -35.4 },
+        { "date": "2026-07-15", "observed": -34.4, "expected": -47.2, "ci_lower": -59.0, "ci_upper": -35.4 },
+        { "date": "2026-07-30", "observed": -30.1, "expected": -47.2, "ci_lower": -59.0, "ci_upper": -35.4 }
+      ]
+    },
+    {
+      "biomarker": "te_ratio",
+      "unit": "ratio",
+      "points": [
+        { "date": "2026-06-01", "observed": 1.3, "expected": 1.35, "ci_lower": 0.76, "ci_upper": 1.94 },
+        { "date": "2026-06-15", "observed": 1.4, "expected": 1.35, "ci_lower": 0.76, "ci_upper": 1.94 },
+        { "date": "2026-07-01", "observed": 1.5, "expected": 1.35, "ci_lower": 0.76, "ci_upper": 1.94 },
+        { "date": "2026-07-15", "observed": 1.6, "expected": 1.35, "ci_lower": 0.76, "ci_upper": 1.94 },
+        { "date": "2026-07-30", "observed": 1.9, "expected": 1.35, "ci_lower": 0.76, "ci_upper": 1.94 }
+      ]
+    }
+  ]
+}

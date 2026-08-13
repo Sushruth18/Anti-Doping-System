@@ -1,0 +1,11 @@
+{
+  "id": 401,
+  "athlete_id": 1,
+  "action_type": "open_case",
+  "value_score": 0.88,
+  "uncertainty_score": 0.35,
+  "anomaly_score": 0.82,
+  "cost": 15,
+  "explanation_text": "Sustained upward trend in Hb/HCT with suppressed reticulocyte percentage over the last 3 samples (OFF-score z-score 3.49), consistent with blood manipulation. High anomaly score combined with moderate uncertainty justifies opening a formal case for investigator review.",
+  "created_at": "2026-07-30T09:20:00Z"
+}

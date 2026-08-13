@@ -1,0 +1,172 @@
+{
+  "athlete_id": 1,
+  "events": [
+    {
+      "type": "sample",
+      "timestamp": "2026-06-01T00:00:00Z",
+      "data": {
+        "id": 101,
+        "athlete_id": 1,
+        "date": "2026-06-01",
+        "hb": 14.2,
+        "hct": 42.1,
+        "ret_pct": 1.1,
+        "off_score": -48.7,
+        "te_ratio": 1.3,
+        "competition_flag": false,
+        "altitude_flag": false,
+        "injury_flag": false
+      }
+    },
+    {
+      "type": "sample",
+      "timestamp": "2026-06-15T00:00:00Z",
+      "data": {
+        "id": 102,
+        "athlete_id": 1,
+        "date": "2026-06-15",
+        "hb": 14.5,
+        "hct": 42.8,
+        "ret_pct": 1.0,
+        "off_score": -45.5,
+        "te_ratio": 1.4,
+        "competition_flag": false,
+        "altitude_flag": false,
+        "injury_flag": false
+      }
+    },
+    {
+      "type": "sample",
+      "timestamp": "2026-07-01T00:00:00Z",
+      "data": {
+        "id": 103,
+        "athlete_id": 1,
+        "date": "2026-07-01",
+        "hb": 15.1,
+        "hct": 44.5,
+        "ret_pct": 0.8,
+        "off_score": -38.6,
+        "te_ratio": 1.5,
+        "competition_flag": false,
+        "altitude_flag": false,
+        "injury_flag": false
+      }
+    },
+    {
+      "type": "anomaly",
+      "timestamp": "2026-07-01T10:00:00Z",
+      "data": {
+        "id": 201,
+        "athlete_id": 1,
+        "sample_id": 103,
+        "anomaly_score": 0.41,
+        "mahalanobis_distance": 1.95,
+        "method": "mahalanobis_baseline",
+        "created_at": "2026-07-01T10:00:00Z"
+      }
+    },
+    {
+      "type": "sample",
+      "timestamp": "2026-07-15T00:00:00Z",
+      "data": {
+        "id": 104,
+        "athlete_id": 1,
+        "date": "2026-07-15",
+        "hb": 15.8,
+        "hct": 46.2,
+        "ret_pct": 0.7,
+        "off_score": -34.4,
+        "te_ratio": 1.6,
+        "competition_flag": false,
+        "altitude_flag": false,
+        "injury_flag": false
+      }
+    },
+    {
+      "type": "anomaly",
+      "timestamp": "2026-07-15T10:00:00Z",
+      "data": {
+        "id": 202,
+        "athlete_id": 1,
+        "sample_id": 104,
+        "anomaly_score": 0.63,
+        "mahalanobis_distance": 2.87,
+        "method": "mahalanobis_baseline",
+        "created_at": "2026-07-15T10:00:00Z"
+      }
+    },
+    {
+      "type": "sample",
+      "timestamp": "2026-07-30T00:00:00Z",
+      "data": {
+        "id": 105,
+        "athlete_id": 1,
+        "date": "2026-07-30",
+        "hb": 16.4,
+        "hct": 48.0,
+        "ret_pct": 0.6,
+        "off_score": -30.1,
+        "te_ratio": 1.9,
+        "competition_flag": true,
+        "altitude_flag": false,
+        "injury_flag": false
+      }
+    },
+    {
+      "type": "anomaly",
+      "timestamp": "2026-07-30T09:15:00Z",
+      "data": {
+        "id": 203,
+        "athlete_id": 1,
+        "sample_id": 105,
+        "anomaly_score": 0.82,
+        "mahalanobis_distance": 4.35,
+        "method": "mahalanobis_baseline",
+        "created_at": "2026-07-30T09:15:00Z"
+      }
+    },
+    {
+      "type": "recommendation",
+      "timestamp": "2026-07-30T09:20:00Z",
+      "data": {
+        "id": 401,
+        "athlete_id": 1,
+        "action_type": "open_case",
+        "value_score": 0.88,
+        "uncertainty_score": 0.35,
+        "anomaly_score": 0.82,
+        "cost": 15,
+        "explanation_text": "Sustained upward trend in Hb/HCT with suppressed reticulocyte percentage over the last 3 samples (OFF-score z-score 3.49), consistent with blood manipulation. High anomaly score combined with moderate uncertainty justifies opening a formal case for investigator review.",
+        "created_at": "2026-07-30T09:20:00Z"
+      }
+    },
+    {
+      "type": "case_opened",
+      "timestamp": "2026-07-30T09:25:00Z",
+      "data": {
+        "id": 501,
+        "athlete_id": 1,
+        "status": "open",
+        "opened_at": "2026-07-30T09:25:00Z",
+        "closed_at": null,
+        "investigator_notes": "Opened based on automated recommendation engine flag (value_score 0.88)."
+      }
+    },
+    {
+      "type": "decision",
+      "timestamp": "2026-07-31T14:00:00Z",
+      "data": {
+        "id": 601,
+        "case_id": 501,
+        "athlete_id": 1,
+        "actor": "Dr. Amara Whitfield",
+        "action": "target_test_ordered",
+        "timestamp": "2026-07-31T14:00:00Z",
+        "details": {
+          "notes": "Ordered out-of-competition target test based on sustained OFF-score trend.",
+          "previous_status": "open"
+        }
+      }
+    }
+  ]
+}

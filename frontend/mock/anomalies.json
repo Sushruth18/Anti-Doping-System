@@ -1,0 +1,50 @@
+[
+  {
+    "id": 203,
+    "athlete_id": 1,
+    "sample_id": 105,
+    "anomaly_score": 0.82,
+    "mahalanobis_distance": 4.35,
+    "method": "mahalanobis_baseline",
+    "created_at": "2026-07-30T09:15:00Z",
+    "contributing_biomarkers": [
+      { "biomarker": "off_score", "observed_value": -30.1, "population_mean": -58.0, "population_std": 8.0, "z_score": 3.49, "contribution_pct": 27.8 },
+      { "biomarker": "hct", "observed_value": 48.0, "population_mean": 41.0, "population_std": 2.5, "z_score": 2.8, "contribution_pct": 22.3 },
+      { "biomarker": "hb", "observed_value": 16.4, "population_mean": 13.9, "population_std": 1.0, "z_score": 2.5, "contribution_pct": 19.9 },
+      { "biomarker": "ret_pct", "observed_value": 0.6, "population_mean": 1.2, "population_std": 0.3, "z_score": -2.0, "contribution_pct": 15.9 },
+      { "biomarker": "te_ratio", "observed_value": 1.9, "population_mean": 1.2, "population_std": 0.4, "z_score": 1.75, "contribution_pct": 14.0 }
+    ]
+  },
+  {
+    "id": 202,
+    "athlete_id": 1,
+    "sample_id": 104,
+    "anomaly_score": 0.63,
+    "mahalanobis_distance": 2.87,
+    "method": "mahalanobis_baseline",
+    "created_at": "2026-07-15T10:00:00Z",
+    "contributing_biomarkers": [
+      { "biomarker": "off_score", "observed_value": -34.4, "population_mean": -58.0, "population_std": 8.0, "z_score": 2.95, "contribution_pct": 30.7 },
+      { "biomarker": "hct", "observed_value": 46.2, "population_mean": 41.0, "population_std": 2.5, "z_score": 2.08, "contribution_pct": 21.7 },
+      { "biomarker": "hb", "observed_value": 15.8, "population_mean": 13.9, "population_std": 1.0, "z_score": 1.9, "contribution_pct": 19.8 },
+      { "biomarker": "ret_pct", "observed_value": 0.7, "population_mean": 1.2, "population_std": 0.3, "z_score": -1.67, "contribution_pct": 17.4 },
+      { "biomarker": "te_ratio", "observed_value": 1.6, "population_mean": 1.2, "population_std": 0.4, "z_score": 1.0, "contribution_pct": 10.4 }
+    ]
+  },
+  {
+    "id": 201,
+    "athlete_id": 1,
+    "sample_id": 103,
+    "anomaly_score": 0.41,
+    "mahalanobis_distance": 1.95,
+    "method": "mahalanobis_baseline",
+    "created_at": "2026-07-01T10:00:00Z",
+    "contributing_biomarkers": [
+      { "biomarker": "off_score", "observed_value": -38.6, "population_mean": -58.0, "population_std": 8.0, "z_score": 2.43, "contribution_pct": 34.2 },
+      { "biomarker": "ret_pct", "observed_value": 0.8, "population_mean": 1.2, "population_std": 0.3, "z_score": -1.33, "contribution_pct": 18.7 },
+      { "biomarker": "hct", "observed_value": 44.5, "population_mean": 41.0, "population_std": 2.5, "z_score": 1.4, "contribution_pct": 19.7 },
+      { "biomarker": "hb", "observed_value": 15.1, "population_mean": 13.9, "population_std": 1.0, "z_score": 1.2, "contribution_pct": 16.9 },
+      { "biomarker": "te_ratio", "observed_value": 1.5, "population_mean": 1.2, "population_std": 0.4, "z_score": 0.75, "contribution_pct": 10.5 }
+    ]
+  }
+]
