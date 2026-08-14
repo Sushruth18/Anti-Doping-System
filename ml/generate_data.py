@@ -16,6 +16,10 @@ CONFIG = {
     "n_samples_per_athlete": 5,
     "samples_start_date": "2025-01-15",
     "sample_interval_days": 28,
+    # AR(1)-style Hb walk: next = previous + drift + correlated_noise
+    "hb_drift": 0.0,  # g/dL per sample (0 = no systematic trend)
+    "hb_autocorrelation": 0.75,  # rho: inertia of the increment (0=independent, ~1=smooth drift)
+    "hb_noise_std": 0.12,  # std of fresh shock each step (after autocorrelation)
 }
 
 # Placeholder constants (v1 will replace with correlated generated values).
@@ -27,7 +31,6 @@ PLACEHOLDER_TE_RATIO = 1.0  # unitless — normal T/E reference
 # Hb random-walk bounds (g/dL)
 HB_MIN = 12.0
 HB_MAX = 18.0
-HB_STEP_STD = 0.35
 
 SPORTS = ["Cycling", "Running", "Swimming", "Rowing", "Triathlon"]
 
@@ -66,10 +69,23 @@ def compute_off_score(hb_g_dL: float, ret_pct: float) -> float:
 
 
 def random_walk_hb(rng: Random, n_steps: int, start: float) -> list[float]:
-    """Generate a clamped Gaussian random walk for Hb (g/dL)."""
+    """Generate a clamped AR(1)-style random walk for Hb (g/dL).
+
+    Each step: hb_t = hb_{t-1} + drift + epsilon_t
+    where epsilon_t = rho * epsilon_{t-1} + N(0, noise_std).
+
+    Autocorrelation on the increment produces smooth day-to-day drift instead of
+    independent step noise (v0).
+    """
+    rho = CONFIG["hb_autocorrelation"]
+    drift = CONFIG["hb_drift"]
+    noise_std = CONFIG["hb_noise_std"]
+
     values = [start]
+    epsilon = 0.0
     for _ in range(n_steps - 1):
-        next_val = values[-1] + rng.gauss(0, HB_STEP_STD)
+        epsilon = (rho * epsilon) + rng.gauss(0, noise_std)
+        next_val = values[-1] + drift + epsilon
         next_val = max(HB_MIN, min(HB_MAX, next_val))
         values.append(next_val)
     return [round(v, 2) for v in values]
