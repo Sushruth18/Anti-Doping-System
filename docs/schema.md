@@ -12,19 +12,6 @@ message before editing (see `CLAUDE.md`).
 > handed to the frontend — regardless of how the rest of this schema
 > evolves. See the same warning in `docs/api-contract.md`.
 
-> ### ⚠️ Known doc drift — `off_score` formula
-> The correct convention (agreed, but not yet propagated everywhere) is:
-> **`off_score = (hb_g_dL * 10) - 60 * sqrt(ret_pct)`** — `hb` is stored
-> in the `hb` column in g/dL (spec §8's raw unit), but must be
-> **converted to g/L (×10) before applying the OFF-score formula**.
-> Applying the formula directly to the raw g/dL value (as
-> `docs/api-contract.md`'s Conventions section and `frontend/mock/*.json`
-> currently still do) produces unrealistic negative scores instead of
-> the clinical ~80–105 range. **`docs/api-contract.md` and the mock
-> fixtures have not been updated to match yet** — treat this doc as
-> authoritative on the formula until that follow-up pass happens, don't
-> silently re-derive the uncorrected version.
-
 ---
 
 ## Roadmap overview
