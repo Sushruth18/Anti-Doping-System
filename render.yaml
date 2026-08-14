@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: anti-doping-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # Render's disk is ephemeral (wiped on every redeploy AND every
+    # restart/wake from spin-down), so re-seeding from committed
+    # /data/*.json has to happen on every container boot, not just once
+    # at deploy time — chained into startCommand (runs every start) rather
+    # than a one-shot preDeployCommand (runs only on deploy). `&&` means a
+    # seeding failure stops the boot instead of silently serving an empty
+    # DB. Render injects $PORT at runtime; uvicorn must bind to it rather
+    # than a hardcoded port.
+    startCommand: python app/db/seed.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.11
+      - key: CORS_ORIGINS
+        value: https://anti-doping-system.vercel.app
