@@ -1,4 +1,4 @@
-"""v0 synthetic data generator — real Hb random walk, placeholder other biomarkers."""
+"""Synthetic data generator — v1: 80 athletes, 5 correlated biomarkers, per-sport priors."""
 
 from __future__ import annotations
 
@@ -10,37 +10,78 @@ from random import Random
 
 # --- CONFIG ---
 CONFIG = {
-    "n_athletes": 10,
+    "n_athletes": 80,
+    "n_sports": 5,
     "seed": 42,
-    "biomarkers": ["hb"],  # v0: only Hb is generated; hct/ret_pct/te_ratio are placeholders
     "n_samples_per_athlete": 5,
     "samples_start_date": "2025-01-15",
     "sample_interval_days": 28,
-    # AR(1)-style Hb walk: next = previous + drift + correlated_noise
-    "hb_drift": 0.0,  # g/dL per sample (0 = no systematic trend)
-    "hb_autocorrelation": 0.75,  # rho: inertia of the increment (0=independent, ~1=smooth drift)
-    "hb_noise_std": 0.12,  # std of fresh shock each step (after autocorrelation)
+    # AR(1) increment: epsilon_t = rho * epsilon_{t-1} + N(0, step_std)
+    "walk_autocorrelation": 0.75,
+    "hb_step_std": 0.12,
+    "hct_step_std": 0.35,
+    "ret_pct_step_std": 0.04,
+    "te_ratio_step_std": 0.03,
+    # hct increment tracks hb increment: delta_hct ≈ hb_hct_coupling * delta_hb
+    "hb_hct_coupling": 2.85,
 }
 
-# Placeholder constants (v1 will replace with correlated generated values).
-# Population-average-ish values, clearly not athlete-specific at this stage.
-PLACEHOLDER_HCT = 42.5  # % — typical adult male athlete hematocrit
-PLACEHOLDER_RET_PCT = 1.0  # % — mid-normal reticulocyte percentage (not a fraction)
-PLACEHOLDER_TE_RATIO = 1.0  # unitless — normal T/E reference
+BIOMARKER_KEYS = ("hb", "hct", "ret_pct", "off_score", "te_ratio")
 
-# Hb random-walk bounds (g/dL)
-HB_MIN = 12.0
-HB_MAX = 18.0
+# Per-sport population priors — seed the Bayesian baseline before samples exist.
+SPORT_PRIORS: dict[str, dict[str, dict[str, float]]] = {
+    "Cycling": {
+        "hb": {"mean": 15.4, "std": 0.75},
+        "hct": {"mean": 45.0, "std": 2.0},
+        "ret_pct": {"mean": 1.05, "std": 0.26},
+        "te_ratio": {"mean": 1.15, "std": 0.22},
+    },
+    "Running": {
+        "hb": {"mean": 14.8, "std": 0.70},
+        "hct": {"mean": 43.5, "std": 1.9},
+        "ret_pct": {"mean": 1.12, "std": 0.28},
+        "te_ratio": {"mean": 1.10, "std": 0.20},
+    },
+    "Swimming": {
+        "hb": {"mean": 14.5, "std": 0.65},
+        "hct": {"mean": 42.8, "std": 1.8},
+        "ret_pct": {"mean": 1.08, "std": 0.27},
+        "te_ratio": {"mean": 1.08, "std": 0.18},
+    },
+    "Rowing": {
+        "hb": {"mean": 15.1, "std": 0.72},
+        "hct": {"mean": 44.8, "std": 2.1},
+        "ret_pct": {"mean": 1.00, "std": 0.24},
+        "te_ratio": {"mean": 1.12, "std": 0.21},
+    },
+    "Triathlon": {
+        "hb": {"mean": 14.9, "std": 0.68},
+        "hct": {"mean": 44.0, "std": 1.9},
+        "ret_pct": {"mean": 1.10, "std": 0.27},
+        "te_ratio": {"mean": 1.10, "std": 0.20},
+    },
+}
 
-SPORTS = ["Cycling", "Running", "Swimming", "Rowing", "Triathlon"]
+SPORTS = list(SPORT_PRIORS.keys())[: CONFIG["n_sports"]]
+
+# Physiological clamp ranges
+BOUNDS = {
+    "hb": (12.0, 18.0),
+    "hct": (36.0, 52.0),
+    "ret_pct": (0.5, 2.5),
+    "te_ratio": (0.6, 2.0),
+}
 
 FIRST_NAMES = [
-    "Alex", "Jordan", "Sam", "Taylor", "Casey",
-    "Morgan", "Riley", "Quinn", "Avery", "Blake",
+    "Alex", "Jordan", "Sam", "Taylor", "Casey", "Morgan", "Riley", "Quinn",
+    "Avery", "Blake", "Cameron", "Dakota", "Emery", "Finley", "Gray", "Harper",
+    "Indigo", "Jules", "Kai", "Logan", "Marlow", "Noel", "Oakley", "Parker",
 ]
 LAST_NAMES = [
-    "Chen", "Okonkwo", "Petrov", "Santos", "Kim",
-    "Andersson", "Nakamura", "Dupont", "Silva", "Hansen",
+    "Chen", "Okonkwo", "Petrov", "Santos", "Kim", "Andersson", "Nakamura",
+    "Dupont", "Silva", "Hansen", "Morales", "Nguyen", "Patel", "Rossi", "Walsh",
+    "Okafor", "Berg", "Costa", "Dubois", "Eriksson", "Fischer", "Gomez", "Hayes",
+    "Ivanov",
 ]
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -60,47 +101,118 @@ SAMPLE_FIELDS = (
 
 
 def compute_off_score(hb_g_dL: float, ret_pct: float) -> float:
-    """Locked formula: off_score = (hb_g_dL * 10) - 60 * sqrt(ret_pct).
-
-    At v0, ret_pct is a placeholder constant, so off_score tracks Hb only and
-    is provisional until v1 generates real ret_pct values.
-    """
+    """Locked formula: off_score = (hb_g_dL * 10) - 60 * sqrt(ret_pct)."""
     return (hb_g_dL * 10) - (60 * math.sqrt(ret_pct))
 
 
-def random_walk_hb(rng: Random, n_steps: int, start: float) -> list[float]:
-    """Generate a clamped AR(1)-style random walk for Hb (g/dL).
+def sport_prior_with_off_score(sport: str) -> dict[str, dict[str, float]]:
+    """Return full prior dict including derived off_score mean/std for a sport."""
+    prior = {k: dict(v) for k, v in SPORT_PRIORS[sport].items()}
+    off_mean = round(
+        compute_off_score(prior["hb"]["mean"], prior["ret_pct"]["mean"]), 1
+    )
+    prior["off_score"] = {"mean": off_mean, "std": 9.5}
+    return prior
 
-    Each step: hb_t = hb_{t-1} + drift + epsilon_t
-    where epsilon_t = rho * epsilon_{t-1} + N(0, noise_std).
 
-    Autocorrelation on the increment produces smooth day-to-day drift instead of
-    independent step noise (v0).
+def clamp(value: float, biomarker: str) -> float:
+    lo, hi = BOUNDS[biomarker]
+    return max(lo, min(hi, value))
+
+
+
+def correlated_biomarker_walks(
+    rng: Random,
+    n_steps: int,
+    sport: str,
+) -> dict[str, list[float]]:
+    """Generate correlated hb/hct/ret_pct/te_ratio series for one athlete.
+
+    hb and hct share momentum (hct delta tracks hb delta). ret_pct and te_ratio
+    use independent AR(1) walks with a small shared environmental shock so they
+    are weakly correlated with each other but not independent noise.
     """
-    rho = CONFIG["hb_autocorrelation"]
-    drift = CONFIG["hb_drift"]
-    noise_std = CONFIG["hb_noise_std"]
+    prior = SPORT_PRIORS[sport]
+    rho = CONFIG["walk_autocorrelation"]
 
-    values = [start]
-    epsilon = 0.0
+    # Individual baseline offsets (correlated hb/hct draw at t=0)
+    z_hb = rng.gauss(0, 1)
+    z_hct = 0.85 * z_hb + 0.53 * rng.gauss(0, 1)  # correlated start
+    hb0 = prior["hb"]["mean"] + z_hb * prior["hb"]["std"] * 0.35
+    hct0 = prior["hct"]["mean"] + z_hct * prior["hct"]["std"] * 0.35
+    ret0 = prior["ret_pct"]["mean"] + rng.gauss(0, prior["ret_pct"]["std"] * 0.35)
+    te0 = prior["te_ratio"]["mean"] + rng.gauss(0, prior["te_ratio"]["std"] * 0.35)
+
+    hb_series: list[float] = [clamp(hb0, "hb")]
+    hct_series: list[float] = [clamp(hct0, "hct")]
+    ret_series: list[float] = [clamp(ret0, "ret_pct")]
+    te_series: list[float] = [clamp(te0, "te_ratio")]
+
+    eps_hb = eps_hct = eps_ret = eps_te = 0.0
+
     for _ in range(n_steps - 1):
-        epsilon = (rho * epsilon) + rng.gauss(0, noise_std)
-        next_val = values[-1] + drift + epsilon
-        next_val = max(HB_MIN, min(HB_MAX, next_val))
-        values.append(next_val)
-    return [round(v, 2) for v in values]
+        shared_env = rng.gauss(0, 0.02)
+
+        eps_hb = (rho * eps_hb) + rng.gauss(0, CONFIG["hb_step_std"])
+        new_hb = clamp(hb_series[-1] + eps_hb, "hb")
+        delta_hb = new_hb - hb_series[-1]
+
+        eps_hct = (rho * eps_hct) + rng.gauss(0, CONFIG["hct_step_std"])
+        # Physiology: hct moves with hb (coupled) plus its own autocorrelated noise
+        new_hct = clamp(
+            hct_series[-1] + (CONFIG["hb_hct_coupling"] * delta_hb) + eps_hct,
+            "hct",
+        )
+
+        eps_ret = (rho * eps_ret) + rng.gauss(0, CONFIG["ret_pct_step_std"]) + shared_env
+        new_ret = clamp(ret_series[-1] + eps_ret, "ret_pct")
+
+        eps_te = (rho * eps_te) + rng.gauss(0, CONFIG["te_ratio_step_std"]) + shared_env
+        new_te = clamp(te_series[-1] + eps_te, "te_ratio")
+
+        hb_series.append(new_hb)
+        hct_series.append(new_hct)
+        ret_series.append(new_ret)
+        te_series.append(new_te)
+
+    return {
+        "hb": [round(v, 2) for v in hb_series],
+        "hct": [round(v, 2) for v in hct_series],
+        "ret_pct": [round(v, 2) for v in ret_series],
+        "te_ratio": [round(v, 2) for v in te_series],
+    }
+
+
+def generate_name(rng: Random, index: int) -> str:
+    first = FIRST_NAMES[index % len(FIRST_NAMES)]
+    last = LAST_NAMES[(index * 7) % len(LAST_NAMES)]
+    suffix = (index // (len(FIRST_NAMES) * len(LAST_NAMES))) + 1
+    if suffix > 1:
+        return f"{first} {last} {suffix}"
+    return f"{first} {last}"
+
+
+def assign_sports(n_athletes: int) -> list[str]:
+    """Even sport assignment across n_sports."""
+    sports: list[str] = []
+    for i in range(n_athletes):
+        sports.append(SPORTS[i % len(SPORTS)])
+    return sports
 
 
 def generate_athletes(rng: Random) -> list[dict]:
+    sport_assignments = assign_sports(CONFIG["n_athletes"])
     athletes = []
     for i in range(CONFIG["n_athletes"]):
+        sport = sport_assignments[i]
+        prior = sport_prior_with_off_score(sport)
         athletes.append(
             {
                 "id": i + 1,
-                "name": f"{FIRST_NAMES[i]} {LAST_NAMES[i]}",
-                "sport": rng.choice(SPORTS),
+                "name": generate_name(rng, i),
+                "sport": sport,
                 "age": rng.randint(18, 35),
-                "baseline_prior_json": None,
+                "baseline_prior_json": json.dumps(prior),
             }
         )
     return athletes
@@ -113,25 +225,26 @@ def generate_samples(rng: Random, athletes: list[dict]) -> list[dict]:
     interval = timedelta(days=CONFIG["sample_interval_days"])
 
     for athlete in athletes:
-        hb_start = round(rng.uniform(13.0, 16.5), 2)
-        hb_series = random_walk_hb(rng, CONFIG["n_samples_per_athlete"], hb_start)
+        walks = correlated_biomarker_walks(
+            rng, CONFIG["n_samples_per_athlete"], athlete["sport"]
+        )
 
-        for step, hb in enumerate(hb_series):
+        for step in range(CONFIG["n_samples_per_athlete"]):
+            hb = walks["hb"][step]
+            ret_pct = walks["ret_pct"][step]
             sample_date = start + (interval * step)
-            # off_score uses placeholder ret_pct — provisional until v1
-            off_score = round(compute_off_score(hb, PLACEHOLDER_RET_PCT), 1)
 
             samples.append(
                 {
                     "id": sample_id,
                     "athlete_id": athlete["id"],
-                    "date": sample_date.isoformat(),  # schema Date → ISO YYYY-MM-DD
+                    "date": sample_date.isoformat(),
                     "hb": hb,
-                    "hct": PLACEHOLDER_HCT,
-                    "ret_pct": PLACEHOLDER_RET_PCT,
-                    "off_score": off_score,
-                    "te_ratio": PLACEHOLDER_TE_RATIO,
-                    # Context flags out of scope at v0 — all False (competition / altitude / injury-TUE)
+                    "hct": walks["hct"][step],
+                    "ret_pct": ret_pct,
+                    "off_score": round(compute_off_score(hb, ret_pct), 1),
+                    "te_ratio": walks["te_ratio"][step],
+                    # Context flags out of scope — no anomaly injection in v1
                     "competition_flag": False,
                     "altitude_flag": False,
                     "injury_flag": False,
@@ -142,59 +255,168 @@ def generate_samples(rng: Random, athletes: list[dict]) -> list[dict]:
     return samples
 
 
-def validate(athletes: list[dict], samples: list[dict]) -> tuple[bool, list[str]]:
+def is_nan(value) -> bool:
+    return isinstance(value, float) and math.isnan(value)
+
+
+def validate_baseline_prior_json(raw: str | None) -> list[str]:
+    errors: list[str] = []
+    if raw is None:
+        errors.append("baseline_prior_json is null")
+        return errors
+    try:
+        prior = json.loads(raw)
+    except json.JSONDecodeError:
+        errors.append("baseline_prior_json is not valid JSON")
+        return errors
+    if not isinstance(prior, dict):
+        errors.append("baseline_prior_json must decode to an object")
+        return errors
+    for key in BIOMARKER_KEYS:
+        if key not in prior:
+            errors.append(f"baseline_prior_json missing biomarker '{key}'")
+            continue
+        entry = prior[key]
+        if not isinstance(entry, dict):
+            errors.append(f"prior '{key}' must be {{mean, std}} object")
+            continue
+        if "mean" not in entry or "std" not in entry:
+            errors.append(f"prior '{key}' missing mean or std")
+        elif is_nan(entry["mean"]) or is_nan(entry["std"]):
+            errors.append(f"prior '{key}' contains NaN")
+    return errors
+
+
+def validate(athletes: list[dict], samples: list[dict]) -> tuple[dict[str, bool], list[str]]:
+    checks: dict[str, bool] = {}
     errors: list[str] = []
 
-    if len(athletes) != CONFIG["n_athletes"]:
+    checks["athlete_count"] = len(athletes) == CONFIG["n_athletes"]
+    if not checks["athlete_count"]:
         errors.append(f"Expected {CONFIG['n_athletes']} athletes, got {len(athletes)}")
 
     athlete_ids = {a["id"] for a in athletes}
+    prior_ok = True
     for athlete in athletes:
-        if not isinstance(athlete["id"], int):
-            errors.append(f"Athlete id must be int, got {type(athlete['id'])}")
-        if athlete["baseline_prior_json"] is not None:
-            errors.append(f"Athlete {athlete['id']}: baseline_prior_json must be null at v0")
+        prior_errors = validate_baseline_prior_json(athlete.get("baseline_prior_json"))
+        if prior_errors:
+            prior_ok = False
+            for err in prior_errors:
+                errors.append(f"Athlete {athlete.get('id')}: {err}")
+    checks["baseline_prior_json"] = prior_ok
+
+    fields_ok = True
+    types_ok = True
+    nan_ok = True
+    ranges_ok = True
+    off_score_ok = True
+    flags_ok = True
+    fk_ok = True
 
     for sample in samples:
         for field in SAMPLE_FIELDS:
             if field not in sample:
-                errors.append(f"Sample {sample.get('id')}: missing field '{field}'")
+                fields_ok = False
+                errors.append(f"Sample {sample.get('id')}: missing '{field}'")
 
         if sample.get("athlete_id") not in athlete_ids:
-            errors.append(f"Sample {sample.get('id')}: invalid athlete_id {sample.get('athlete_id')}")
+            fk_ok = False
+            errors.append(f"Sample {sample.get('id')}: invalid athlete_id")
 
-        hb = sample.get("hb")
-        if hb is None or (isinstance(hb, float) and math.isnan(hb)):
-            errors.append(f"Sample {sample.get('id')}: hb is NaN or missing")
-        elif not (HB_MIN <= hb <= HB_MAX):
-            errors.append(f"Sample {sample.get('id')}: hb={hb} outside [{HB_MIN}, {HB_MAX}]")
+        for biomarker in ("hb", "hct", "ret_pct", "te_ratio", "off_score"):
+            val = sample.get(biomarker)
+            if val is None or not isinstance(val, (int, float)):
+                types_ok = False
+            elif is_nan(float(val)):
+                nan_ok = False
 
-        for field in ("hct", "ret_pct", "off_score", "te_ratio"):
-            val = sample.get(field)
-            if val is None or (isinstance(val, float) and math.isnan(val)):
-                errors.append(f"Sample {sample.get('id')}: {field} is NaN or missing")
+        for biomarker in ("hb", "hct", "ret_pct", "te_ratio"):
+            val = sample.get(biomarker)
+            if isinstance(val, (int, float)) and not is_nan(val):
+                lo, hi = BOUNDS[biomarker]
+                if not (lo <= val <= hi):
+                    ranges_ok = False
+                    errors.append(
+                        f"Sample {sample.get('id')}: {biomarker}={val} outside [{lo}, {hi}]"
+                    )
 
         for flag in ("competition_flag", "altitude_flag", "injury_flag"):
             if sample.get(flag) is not True and sample.get(flag) is not False:
-                errors.append(f"Sample {sample.get('id')}: {flag} must be bool")
+                flags_ok = False
 
         expected_off = round(compute_off_score(sample["hb"], sample["ret_pct"]), 1)
         if sample["off_score"] != expected_off:
+            off_score_ok = False
             errors.append(
-                f"Sample {sample.get('id')}: off_score {sample['off_score']} != expected {expected_off}"
+                f"Sample {sample.get('id')}: off_score {sample['off_score']} != {expected_off}"
             )
 
-    # Manual spot-check rows (first two samples)
-    if len(samples) >= 2:
-        for idx in (0, 1):
-            s = samples[idx]
-            manual = round(compute_off_score(s["hb"], s["ret_pct"]), 1)
-            print(
-                f"  spot-check sample {s['id']}: hb={s['hb']}, ret_pct={s['ret_pct']} "
-                f"-> off_score={manual} (stored={s['off_score']})"
-            )
+    checks["sample_fields"] = fields_ok
+    checks["sample_types"] = types_ok
+    checks["no_nans"] = nan_ok
+    checks["biomarker_ranges"] = ranges_ok
+    checks["off_score_formula"] = off_score_ok
+    checks["context_flags_false"] = all(
+        s["competition_flag"] is False
+        and s["altitude_flag"] is False
+        and s["injury_flag"] is False
+        for s in samples
+    )
+    checks["athlete_fk"] = fk_ok
+    checks["flags_bool"] = flags_ok
 
-    return len(errors) == 0, errors
+    return checks, errors
+
+
+def print_validation_report(
+    checks: dict[str, bool], errors: list[str], samples: list[dict]
+) -> bool:
+    labels = {
+        "athlete_count": f"Athlete count == {CONFIG['n_athletes']}",
+        "baseline_prior_json": "baseline_prior_json present + shaped {biomarker: {mean, std}}",
+        "sample_fields": "All sample fields present (8 biomarker/flag fields)",
+        "sample_types": "Biomarker fields numeric",
+        "no_nans": "No NaNs in biomarkers",
+        "biomarker_ranges": "Biomarkers in physiological ranges",
+        "off_score_formula": "off_score matches locked formula (all rows)",
+        "context_flags_false": "competition/altitude/injury flags all False",
+        "athlete_fk": "Valid athlete_id FK on every sample",
+        "flags_bool": "Flag fields are bool",
+    }
+
+    print("\n" + "=" * 72)
+    print("VALIDATION REPORT (v1)")
+    print("=" * 72)
+    print(f"{'Check':<62} {'Result'}")
+    print("-" * 72)
+    for key, label in labels.items():
+        status = "PASS" if checks.get(key, False) else "FAIL"
+        print(f"{label:<62} {status}")
+
+    spot_indices = [0, len(samples) // 2, len(samples) - 1]
+    print("\noff_score spot-checks (3 rows):")
+    spot_ok = True
+    for idx in spot_indices:
+        s = samples[idx]
+        expected = round(compute_off_score(s["hb"], s["ret_pct"]), 1)
+        ok = s["off_score"] == expected
+        spot_ok = spot_ok and ok
+        print(
+            f"  sample {s['id']}: hb={s['hb']}, ret_pct={s['ret_pct']} "
+            f"-> expected={expected}, stored={s['off_score']} [{'OK' if ok else 'MISMATCH'}]"
+        )
+    print(f"{'off_score spot-check (3 rows)':<62} {'PASS' if spot_ok else 'FAIL'}")
+
+    overall = all(checks.values()) and spot_ok
+    print("-" * 72)
+    print(f"{'OVERALL':<62} {'PASS' if overall else 'FAIL'}")
+    if errors:
+        print("\nFirst errors:")
+        for err in errors[:10]:
+            print(f"  - {err}")
+        if len(errors) > 10:
+            print(f"  ... and {len(errors) - 10} more")
+    return overall
 
 
 def write_json(path: Path, data: list[dict]) -> None:
@@ -217,14 +439,14 @@ def main() -> None:
 
     print(f"Wrote {len(athletes)} athletes -> {athletes_path}")
     print(f"Wrote {len(samples)} samples -> {samples_path}")
+    print(
+        f"Sports: {', '.join(f'{s}={sum(1 for a in athletes if a['sport']==s)}' for s in SPORTS)}"
+    )
 
-    passed, errors = validate(athletes, samples)
-    if passed:
-        print("VALIDATION: PASS")
-    else:
-        print("VALIDATION: FAIL")
-        for err in errors:
-            print(f"  - {err}")
+    checks, errors = validate(athletes, samples)
+    passed = print_validation_report(checks, errors, samples)
+    if not passed:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
