@@ -1,4 +1,4 @@
-"""Synthetic data generator — v1: 80 athletes, 5 correlated biomarkers, per-sport priors."""
+"""Synthetic data generator — v1.1: v1 + transfusion anomaly archetype (~6%)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,11 @@ import math
 from datetime import date, timedelta
 from pathlib import Path
 from random import Random
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 # --- CONFIG ---
 CONFIG = {
@@ -22,8 +27,14 @@ CONFIG = {
     "hct_step_std": 0.35,
     "ret_pct_step_std": 0.04,
     "te_ratio_step_std": 0.03,
-    # hct increment tracks hb increment: delta_hct ≈ hb_hct_coupling * delta_hb
     "hb_hct_coupling": 2.85,
+    # v1.1 anomaly injection (ground_truth.json is Day 3 — not written here)
+    "anomaly_rate": 0.06,
+    "anomaly_archetype": "transfusion",
+    "transfusion_hb_spike": 1.8,  # g/dL added at peak sample in window
+    "transfusion_hct_spike": 5.0,  # % added at peak (hb-linked rise)
+    "transfusion_ret_pct_drop": 0.35,  # % suppressed at peak (not a fraction)
+    "transfusion_window_len": 2,  # consecutive samples in the spike window
 }
 
 BIOMARKER_KEYS = ("hb", "hct", "ret_pct", "off_score", "te_ratio")
@@ -86,6 +97,8 @@ LAST_NAMES = [
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
+PLOT_DIR = REPO_ROOT / "ml" / "plots"
+ANOMALY_PLOT_PATH = PLOT_DIR / "anomaly_check_v11.png"
 
 SAMPLE_FIELDS = (
     "date",
@@ -244,7 +257,7 @@ def generate_samples(rng: Random, athletes: list[dict]) -> list[dict]:
                     "ret_pct": ret_pct,
                     "off_score": round(compute_off_score(hb, ret_pct), 1),
                     "te_ratio": walks["te_ratio"][step],
-                    # Context flags out of scope — no anomaly injection in v1
+                    # Context flags out of scope — all False until later tasks
                     "competition_flag": False,
                     "altitude_flag": False,
                     "injury_flag": False,
@@ -253,6 +266,112 @@ def generate_samples(rng: Random, athletes: list[dict]) -> list[dict]:
             sample_id += 1
 
     return samples
+
+
+def select_anomaly_athletes(rng: Random, athlete_ids: list[int]) -> list[int]:
+    """Pick ~anomaly_rate fraction of athletes for injection."""
+    n_anomaly = max(1, round(CONFIG["n_athletes"] * CONFIG["anomaly_rate"]))
+    n_anomaly = min(n_anomaly, len(athlete_ids))
+    return sorted(rng.sample(athlete_ids, n_anomaly))
+
+
+def inject_transfusion_anomalies(
+    rng: Random,
+    samples: list[dict],
+) -> list[int]:
+    """Blood-transfusion archetype: sharp hb/hct rise + ret_pct suppression.
+
+    te_ratio is left unchanged (transfusion does not directly elevate T/E;
+    steroid/EPO archetypes may touch te_ratio in later tasks).
+
+    Returns affected athlete IDs (in-memory only — no ground_truth.json yet).
+    """
+    if CONFIG["anomaly_archetype"] != "transfusion" or CONFIG["anomaly_rate"] <= 0:
+        return []
+
+    by_athlete: dict[int, list[dict]] = {}
+    for sample in samples:
+        by_athlete.setdefault(sample["athlete_id"], []).append(sample)
+    for rows in by_athlete.values():
+        rows.sort(key=lambda s: s["date"])
+
+    affected = select_anomaly_athletes(rng, list(by_athlete.keys()))
+    window_len = CONFIG["transfusion_window_len"]
+    n_steps = CONFIG["n_samples_per_athlete"]
+
+    for athlete_id in affected:
+        rows = by_athlete[athlete_id]
+        # Window starts after at least one baseline sample; fits within series
+        max_start = n_steps - window_len
+        start_idx = rng.randint(1, max(1, max_start))
+
+        for offset in range(window_len):
+            idx = start_idx + offset
+            row = rows[idx]
+            # Ramp spike within window — sharpest rise at the last window sample
+            ramp = (offset + 1) / window_len
+            hb_add = CONFIG["transfusion_hb_spike"] * ramp
+            hct_add = CONFIG["transfusion_hct_spike"] * ramp
+            ret_drop = CONFIG["transfusion_ret_pct_drop"] * ramp
+
+            row["hb"] = round(clamp(row["hb"] + hb_add, "hb"), 2)
+            row["hct"] = round(clamp(row["hct"] + hct_add, "hct"), 2)
+            row["ret_pct"] = round(clamp(row["ret_pct"] - ret_drop, "ret_pct"), 2)
+            # te_ratio unchanged for transfusion archetype
+            row["off_score"] = round(
+                compute_off_score(row["hb"], row["ret_pct"]), 1
+            )
+
+    return affected
+
+
+def save_anomaly_comparison_plot(
+    samples: list[dict],
+    athletes: list[dict],
+    affected_ids: list[int],
+    out_path: Path,
+) -> None:
+    """Plot hb/hct for one affected vs one unaffected athlete."""
+    if not affected_ids:
+        return
+
+    athlete_map = {a["id"]: a for a in athletes}
+    by_athlete: dict[int, list[dict]] = {}
+    for sample in samples:
+        by_athlete.setdefault(sample["athlete_id"], []).append(sample)
+    for rows in by_athlete.values():
+        rows.sort(key=lambda s: s["date"])
+
+    affected_id = affected_ids[0]
+    control_id = next(aid for aid in sorted(by_athlete) if aid not in affected_ids)
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 6), sharex="col")
+    pairs = [
+        (affected_id, athlete_map[affected_id]["name"], "Affected (transfusion)"),
+        (control_id, athlete_map[control_id]["name"], "Unaffected (baseline)"),
+    ]
+
+    for col, (aid, name, label) in enumerate(pairs):
+        rows = by_athlete[aid]
+        dates = [r["date"] for r in rows]
+        hb = [r["hb"] for r in rows]
+        hct = [r["hct"] for r in rows]
+
+        axes[0, col].plot(dates, hb, "o-", linewidth=2, color="#d62728" if col == 0 else "#1f77b4")
+        axes[0, col].set_title(f"{label}\n{name} (id={aid})")
+        axes[0, col].set_ylabel("Hb (g/dL)")
+        axes[0, col].grid(True, alpha=0.3)
+
+        axes[1, col].plot(dates, hct, "s-", linewidth=2, color="#d62728" if col == 0 else "#1f77b4")
+        axes[1, col].set_ylabel("Hct (%)")
+        axes[1, col].set_xlabel("Date")
+        axes[1, col].grid(True, alpha=0.3)
+
+    fig.suptitle("v1.1 transfusion check — spike vs smooth baseline", fontsize=12)
+    plt.tight_layout()
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=120)
+    plt.close(fig)
 
 
 def is_nan(value) -> bool:
@@ -385,7 +504,7 @@ def print_validation_report(
     }
 
     print("\n" + "=" * 72)
-    print("VALIDATION REPORT (v1)")
+    print("VALIDATION REPORT (v1.1)")
     print("=" * 72)
     print(f"{'Check':<62} {'Result'}")
     print("-" * 72)
@@ -431,6 +550,7 @@ def main() -> None:
 
     athletes = generate_athletes(rng)
     samples = generate_samples(rng, athletes)
+    affected_ids = inject_transfusion_anomalies(rng, samples)
 
     athletes_path = DATA_DIR / "athletes.json"
     samples_path = DATA_DIR / "samples.json"
@@ -442,6 +562,32 @@ def main() -> None:
     print(
         f"Sports: {', '.join(f'{s}={sum(1 for a in athletes if a['sport']==s)}' for s in SPORTS)}"
     )
+    pct = 100 * len(affected_ids) / CONFIG["n_athletes"]
+    print(
+        f"Anomaly injection ({CONFIG['anomaly_archetype']}): "
+        f"{len(affected_ids)}/{CONFIG['n_athletes']} athletes ({pct:.1f}%) "
+        f"ids={affected_ids}"
+    )
+
+    if affected_ids:
+        save_anomaly_comparison_plot(samples, athletes, affected_ids, ANOMALY_PLOT_PATH)
+        print(f"Anomaly plot -> {ANOMALY_PLOT_PATH}")
+
+        # Spot-check off_score on first affected athlete's window samples
+        by_aid = {}
+        for s in samples:
+            by_aid.setdefault(s["athlete_id"], []).append(s)
+        aid = affected_ids[0]
+        rows = sorted(by_aid[aid], key=lambda s: s["date"])
+        print(f"\noff_score spot-check (affected athlete {aid}):")
+        for row in rows:
+            expected = round(compute_off_score(row["hb"], row["ret_pct"]), 1)
+            ok = row["off_score"] == expected
+            print(
+                f"  sample {row['id']}: hb={row['hb']}, ret_pct={row['ret_pct']} "
+                f"-> off_score={row['off_score']} (expected {expected}) "
+                f"[{'OK' if ok else 'STALE'}]"
+            )
 
     checks, errors = validate(athletes, samples)
     passed = print_validation_report(checks, errors, samples)
