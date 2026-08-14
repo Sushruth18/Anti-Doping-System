@@ -1,5 +1,7 @@
 import json
+import math
 from datetime import date as date_type
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict
@@ -7,10 +9,29 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Athlete, Sample
 from app.db.session import get_db
+from app.ml.baseline import update_posterior
 
 router = APIRouter()
 
 _BIOMARKERS = ("hb", "hct", "ret_pct", "off_score", "te_ratio")
+
+_BIOMARKER_UNITS = {
+    "hb": "g/dL",
+    "hct": "%",
+    "ret_pct": "%",
+    "off_score": "score",
+    "te_ratio": "ratio",
+}
+
+_TRAJECTORY_CI_LEVEL = 0.95
+
+# TODO (Day 3): obs_var is a placeholder — the prototype only validated a
+# fixed measurement-noise variance (0.25) for Hb specifically. Scaling it
+# from each biomarker's own prior std keeps it dimensionally sane across
+# biomarkers with very different ranges (e.g. te_ratio ~1-2 vs off_score
+# ~70-120), but it's unvalidated. Replace with real per-biomarker
+# measurement-noise variances once Dev 2 supplies them.
+_OBS_VAR_STD_FRACTION = 0.25
 
 
 class BiomarkerStat(BaseModel):
@@ -60,6 +81,26 @@ class AthleteDetail(BaseModel):
     age: int | None
     baseline_prior: BaselinePrior
     samples: list[SampleOut]
+
+
+class TrajectoryPoint(BaseModel):
+    date: date_type
+    observed: float
+    expected: float
+    ci_lower: float
+    ci_upper: float
+
+
+class BiomarkerTrajectory(BaseModel):
+    biomarker: Literal["hb", "hct", "ret_pct", "off_score", "te_ratio"]
+    unit: str
+    points: list[TrajectoryPoint]
+
+
+class TrajectoryResponse(BaseModel):
+    athlete_id: int
+    ci_level: float
+    series: list[BiomarkerTrajectory]
 
 
 @router.get("/athletes", response_model=list[AthleteListItem])
@@ -142,4 +183,57 @@ def get_athlete(athlete_id: int, db: Session = Depends(get_db)) -> AthleteDetail
         age=athlete.age,
         baseline_prior=BaselinePrior(**baseline_data),
         samples=[SampleOut.model_validate(sample) for sample in samples],
+    )
+
+
+@router.get("/athletes/{athlete_id}/trajectory", response_model=TrajectoryResponse)
+def get_athlete_trajectory(athlete_id: int, db: Session = Depends(get_db)) -> TrajectoryResponse:
+    athlete = db.query(Athlete).filter(Athlete.id == athlete_id).first()
+    if athlete is None:
+        raise HTTPException(status_code=404, detail=f"Athlete {athlete_id} not found")
+
+    baseline_data = json.loads(athlete.baseline_prior_json)
+
+    samples = (
+        db.query(Sample)
+        .filter(Sample.athlete_id == athlete_id)
+        .order_by(Sample.date.asc())
+        .all()
+    )
+
+    series: list[BiomarkerTrajectory] = []
+    for biomarker in _BIOMARKERS:
+        prior_entry = baseline_data[biomarker]
+        prior_std = prior_entry["std"]
+        obs_var = (_OBS_VAR_STD_FRACTION * prior_std) ** 2
+
+        mean = prior_entry["mean"]
+        var = prior_std**2
+        points: list[TrajectoryPoint] = []
+        for sample in samples:
+            observed = getattr(sample, biomarker)
+            mean, var = update_posterior(mean, var, observed, obs_var)
+            margin = 1.96 * math.sqrt(var)
+            points.append(
+                TrajectoryPoint(
+                    date=sample.date,
+                    observed=observed,
+                    expected=mean,
+                    ci_lower=mean - margin,
+                    ci_upper=mean + margin,
+                )
+            )
+
+        series.append(
+            BiomarkerTrajectory(
+                biomarker=biomarker,
+                unit=_BIOMARKER_UNITS[biomarker],
+                points=points,
+            )
+        )
+
+    return TrajectoryResponse(
+        athlete_id=athlete_id,
+        ci_level=_TRAJECTORY_CI_LEVEL,
+        series=series,
     )
