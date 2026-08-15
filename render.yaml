@@ -13,7 +13,12 @@ services:
     # seeding failure stops the boot instead of silently serving an empty
     # DB. Render injects $PORT at runtime; uvicorn must bind to it rather
     # than a hardcoded port.
-    startCommand: python app/db/seed.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    # backfill_anomalies.py runs right after seed.py for the same reason:
+    # seed.py wipes the anomalies table on every reseed (see its comment),
+    # so anomalies must be repopulated every boot too, not just scored
+    # lazily as new samples trickle in via POST. It's idempotent, so
+    # re-running it on every restart (even without a reseed) is safe.
+    startCommand: python app/db/seed.py && python app/db/backfill_anomalies.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION

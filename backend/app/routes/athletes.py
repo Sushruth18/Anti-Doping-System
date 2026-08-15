@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Anomaly, Athlete, Sample
 from app.db.session import get_db
-from app.ml.anomaly import get_anomaly_score
+from app.ml.anomaly import ANOMALY_METHOD, get_anomaly_score, normalize_anomaly_score
 from app.ml.baseline import (
     BIOMARKERS,
     OBS_VAR_STD_FRACTION,
@@ -30,18 +30,6 @@ _BIOMARKER_UNITS = {
 }
 
 _TRAJECTORY_CI_LEVEL = 0.95
-
-_ANOMALY_METHOD = "mahalanobis_baseline"
-
-# TODO: unvalidated placeholder pending real anomaly-score calibration data,
-# same status as baseline.OBS_VAR_STD_FRACTION. Maps the raw, unbounded
-# Mahalanobis distance from app.ml.anomaly.get_anomaly_score into the
-# contract's normalized-0-1 anomaly_score via 1 - exp(-distance / SCALE).
-ANOMALY_SCORE_SCALE = 3.0
-
-
-def _normalize_anomaly_score(raw_distance: float) -> float:
-    return 1 - math.exp(-raw_distance / ANOMALY_SCORE_SCALE)
 
 
 def _compute_off_score(hb: float, ret_pct: float) -> float:
@@ -403,9 +391,9 @@ def create_athlete_sample(
     new_anomaly = Anomaly(
         athlete_id=athlete_id,
         sample_id=new_sample.id,
-        anomaly_score=_normalize_anomaly_score(raw_distance),
+        anomaly_score=normalize_anomaly_score(raw_distance),
         mahalanobis_distance=raw_distance,
-        method=_ANOMALY_METHOD,
+        method=ANOMALY_METHOD,
         created_at=datetime.utcnow(),
     )
     db.add(new_anomaly)

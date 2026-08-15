@@ -34,6 +34,18 @@ from app.ml.baseline import compute_current_posterior
 
 BIOMARKERS = ("hb", "hct", "ret_pct", "off_score", "te_ratio")
 
+ANOMALY_METHOD = "mahalanobis_baseline"
+
+# TODO: unvalidated placeholder pending real anomaly-score calibration data,
+# same status as baseline.OBS_VAR_STD_FRACTION. Maps the raw, unbounded
+# Mahalanobis distance from get_anomaly_score into the contract's
+# normalized-0-1 anomaly_score via 1 - exp(-distance / SCALE).
+ANOMALY_SCORE_SCALE = 3.0
+
+
+def normalize_anomaly_score(raw_distance: float) -> float:
+    return 1 - math.exp(-raw_distance / ANOMALY_SCORE_SCALE)
+
 
 def mahalanobis_distance(
     posterior: Mapping[str, tuple[float, float]],

@@ -31,6 +31,14 @@ def seed() -> None:
         # fixed placeholder dataset (not incrementally-updated real data),
         # so each run should leave the tables exactly matching the JSON
         # files rather than merging with whatever was there before.
+        # Anomaly rows are also cleared here even though there's no
+        # anomalies.json to reinsert from: Sample/Athlete ids get reused
+        # after delete (SQLite recycles rowids without AUTOINCREMENT), so
+        # leaving old Anomaly rows in place would leave them pointing at
+        # stale/reassigned athlete_id and sample_id values after reseed.
+        # backfill_anomalies.py (chained right after this script) then
+        # repopulates anomalies from the freshly reseeded samples.
+        db.query(models.Anomaly).delete()
         db.query(models.Sample).delete()
         db.query(models.Athlete).delete()
 
