@@ -233,10 +233,9 @@ drove it.
 interface ContributingBiomarker {
   biomarker: "hb" | "hct" | "ret_pct" | "off_score" | "te_ratio";
   observed_value: number;
-  population_mean: number;    // cohort_stats.population_mean for this sport+biomarker
-  population_std: number;     // cohort_stats.population_std for this sport+biomarker
-  z_score: number;            // (observed_value - population_mean) / population_std
-  contribution_pct: number;   // this biomarker's share of the overall anomaly score; sums to ~100 across the array
+  posterior_mean: number;     // athlete's own Bayesian posterior mean for this biomarker, not a population/cohort value
+  z_score_squared: number;    // (observed_value - posterior_mean)^2 / posterior_var
+  deviation_direction: "above" | "below"; // observed_value relative to posterior_mean
 }
 
 interface AnomalyDetail {
@@ -247,7 +246,7 @@ interface AnomalyDetail {
   mahalanobis_distance: number;   // >= 0, unbounded
   method: string;                 // e.g. "mahalanobis_baseline"; detection method used, ML-defined, not a fixed enum in this contract
   created_at: string;
-  contributing_biomarkers: ContributingBiomarker[]; // ordered by contribution_pct descending
+  contributing_biomarkers: ContributingBiomarker[]; // ordered by z_score_squared descending
 }
 ```
 
