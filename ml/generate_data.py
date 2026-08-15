@@ -1,4 +1,4 @@
-"""Synthetic data generator — v1.1: v1 + transfusion anomaly archetype (~6%)."""
+"""Synthetic data generator — v1.2: v1 + transfusion, epo, steroid anomaly archetypes."""
 
 from __future__ import annotations
 
@@ -28,13 +28,28 @@ CONFIG = {
     "ret_pct_step_std": 0.04,
     "te_ratio_step_std": 0.03,
     "hb_hct_coupling": 2.85,
-    # v1.1 anomaly injection (ground_truth.json is Day 3 — not written here)
+    # v1.2 anomaly injection
     "anomaly_rate": 0.06,
-    "anomaly_archetype": "transfusion",
-    "transfusion_hb_spike": 1.8,  # g/dL added at peak sample in window
-    "transfusion_hct_spike": 5.0,  # % added at peak (hb-linked rise)
-    "transfusion_ret_pct_drop": 0.35,  # % suppressed at peak (not a fraction)
-    "transfusion_window_len": 2,  # consecutive samples in the spike window
+    "anomaly_archetypes": ["transfusion", "epo", "steroid"],
+
+    # Transfusion
+    "transfusion_hb_spike": 1.8,
+    "transfusion_hct_spike": 5.0,
+    "transfusion_ret_pct_drop": 0.35,
+    "transfusion_window_len": 2,
+
+    # EPO micro-dosing
+    "epo_hb_rise": 0.8,
+    "epo_hct_rise": 2.0,
+    "epo_ret_pct_rise": 0.20,
+    "epo_te_ratio_rise": 0.05,
+    "epo_window_len": 3,
+
+    # Steroid micro-dosing
+    "steroid_te_ratio_rise": 0.30,
+    "steroid_hb_rise": 0.15,
+    "steroid_ret_pct_drop": 0.05,
+    "steroid_window_len": 2,
 }
 
 BIOMARKER_KEYS = ("hb", "hct", "ret_pct", "off_score", "te_ratio")
@@ -98,7 +113,8 @@ LAST_NAMES = [
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = REPO_ROOT / "data"
 PLOT_DIR = REPO_ROOT / "ml" / "plots"
-ANOMALY_PLOT_PATH = PLOT_DIR / "anomaly_check_v11.png"
+ANOMALY_PLOT_PATH = PLOT_DIR / "anomaly_check_v12.png"
+GROUND_TRUTH_PATH = DATA_DIR / "ground_truth.json"
 
 SAMPLE_FIELDS = (
     "date",
@@ -286,7 +302,7 @@ def inject_transfusion_anomalies(
 
     Returns affected athlete IDs (in-memory only — no ground_truth.json yet).
     """
-    if CONFIG["anomaly_archetype"] != "transfusion" or CONFIG["anomaly_rate"] <= 0:
+    if CONFIG["anomaly_rate"] <= 0:
         return []
 
     by_athlete: dict[int, list[dict]] = {}
@@ -323,6 +339,154 @@ def inject_transfusion_anomalies(
             )
 
     return affected
+
+
+def inject_epo_anomalies(
+    rng: Random,
+    samples: list[dict],
+) -> list[int]:
+    """EPO micro-dosing archetype: subtle Hb/HCT/reticulocyte/T-E changes."""
+
+    by_athlete: dict[int, list[dict]] = {}
+    for sample in samples:
+        by_athlete.setdefault(sample["athlete_id"], []).append(sample)
+
+    for rows in by_athlete.values():
+        rows.sort(key=lambda s: s["date"])
+
+    affected = select_anomaly_athletes(rng, list(by_athlete.keys()))
+    window_len = CONFIG["epo_window_len"]
+    n_steps = CONFIG["n_samples_per_athlete"]
+
+    for athlete_id in affected:
+        rows = by_athlete[athlete_id]
+
+        max_start = n_steps - window_len
+        start_idx = rng.randint(1, max(1, max_start))
+
+        for offset in range(window_len):
+            idx = start_idx + offset
+            row = rows[idx]
+
+            ramp = (offset + 1) / window_len
+
+            row["hb"] = round(
+                clamp(
+                    row["hb"] + CONFIG["epo_hb_rise"] * ramp,
+                    "hb",
+                ),
+                2,
+            )
+
+            row["hct"] = round(
+                clamp(
+                    row["hct"] + CONFIG["epo_hct_rise"] * ramp,
+                    "hct",
+                ),
+                2,
+            )
+
+            row["ret_pct"] = round(
+                clamp(
+                    row["ret_pct"] + CONFIG["epo_ret_pct_rise"] * ramp,
+                    "ret_pct",
+                ),
+                2,
+            )
+
+            row["te_ratio"] = round(
+                clamp(
+                    row["te_ratio"] + CONFIG["epo_te_ratio_rise"] * ramp,
+                    "te_ratio",
+                ),
+                2,
+            )
+
+    return affected
+
+
+def inject_steroid_anomalies(
+    rng: Random,
+    samples: list[dict],
+) -> list[int]:
+    """Steroid micro-dosing archetype: subtle T/E ratio elevation."""
+
+    by_athlete: dict[int, list[dict]] = {}
+    for sample in samples:
+        by_athlete.setdefault(sample["athlete_id"], []).append(sample)
+
+    for rows in by_athlete.values():
+        rows.sort(key=lambda s: s["date"])
+
+    affected = select_anomaly_athletes(rng, list(by_athlete.keys()))
+    window_len = CONFIG["steroid_window_len"]
+    n_steps = CONFIG["n_samples_per_athlete"]
+
+    for athlete_id in affected:
+        rows = by_athlete[athlete_id]
+
+        max_start = n_steps - window_len
+        start_idx = rng.randint(1, max(1, max_start))
+
+        for offset in range(window_len):
+            idx = start_idx + offset
+            row = rows[idx]
+
+            ramp = (offset + 1) / window_len
+
+            row["te_ratio"] = round(
+                clamp(
+                    row["te_ratio"]
+                    + CONFIG["steroid_te_ratio_rise"] * ramp,
+                    "te_ratio",
+                ),
+                2,
+            )
+
+            row["hb"] = round(
+                clamp(
+                    row["hb"] + CONFIG["steroid_hb_rise"] * ramp,
+                    "hb",
+                ),
+                2,
+            )
+
+            row["ret_pct"] = round(
+                clamp(
+                    row["ret_pct"]
+                    - CONFIG["steroid_ret_pct_drop"] * ramp,
+                    "ret_pct",
+                ),
+                2,
+            )
+
+            row["off_score"] = round(
+                compute_off_score(row["hb"], row["ret_pct"]),
+                1,
+            )
+
+    return affected
+
+
+def write_ground_truth(
+    path: Path,
+    transfusion_ids: list[int],
+    epo_ids: list[int],
+    steroid_ids: list[int],
+) -> None:
+    """Write anomaly labels for validation/evaluation."""
+
+    ground_truth = {
+        "transfusion": sorted(transfusion_ids),
+        "epo": sorted(epo_ids),
+        "steroid": sorted(steroid_ids),
+    }
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(ground_truth, f, indent=2)
+        f.write("\n")
 
 
 def save_anomaly_comparison_plot(
@@ -367,7 +531,7 @@ def save_anomaly_comparison_plot(
         axes[1, col].set_xlabel("Date")
         axes[1, col].grid(True, alpha=0.3)
 
-    fig.suptitle("v1.1 transfusion check — spike vs smooth baseline", fontsize=12)
+    fig.suptitle("v1.2 anomaly check — spike vs smooth baseline", fontsize=12)
     plt.tight_layout()
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path, dpi=120)
@@ -504,7 +668,7 @@ def print_validation_report(
     }
 
     print("\n" + "=" * 72)
-    print("VALIDATION REPORT (v1.1)")
+    print("VALIDATION REPORT (v1.2)")
     print("=" * 72)
     print(f"{'Check':<62} {'Result'}")
     print("-" * 72)
@@ -550,7 +714,26 @@ def main() -> None:
 
     athletes = generate_athletes(rng)
     samples = generate_samples(rng, athletes)
-    affected_ids = inject_transfusion_anomalies(rng, samples)
+    transfusion_ids = inject_transfusion_anomalies(rng, samples)
+    epo_ids = inject_epo_anomalies(rng, samples)
+    steroid_ids = inject_steroid_anomalies(rng, samples)
+
+    affected_ids = sorted(
+        set(transfusion_ids + epo_ids + steroid_ids)
+    )
+
+    for sample in samples:
+        sample["off_score"] = round(
+            compute_off_score(sample["hb"], sample["ret_pct"]),
+            1,
+        )
+
+    write_ground_truth(
+        GROUND_TRUTH_PATH,
+        transfusion_ids,
+        epo_ids,
+        steroid_ids,
+    )
 
     athletes_path = DATA_DIR / "athletes.json"
     samples_path = DATA_DIR / "samples.json"
@@ -559,14 +742,16 @@ def main() -> None:
 
     print(f"Wrote {len(athletes)} athletes -> {athletes_path}")
     print(f"Wrote {len(samples)} samples -> {samples_path}")
+    print(f"Ground truth -> {GROUND_TRUTH_PATH}")
     print(
         f"Sports: {', '.join(f'{s}={sum(1 for a in athletes if a['sport']==s)}' for s in SPORTS)}"
     )
-    pct = 100 * len(affected_ids) / CONFIG["n_athletes"]
     print(
-        f"Anomaly injection ({CONFIG['anomaly_archetype']}): "
-        f"{len(affected_ids)}/{CONFIG['n_athletes']} athletes ({pct:.1f}%) "
-        f"ids={affected_ids}"
+        f"Anomalies injected:"
+        f" transfusion={len(transfusion_ids)},"
+        f" epo={len(epo_ids)},"
+        f" steroid={len(steroid_ids)},"
+        f" unique_athletes={len(affected_ids)}"
     )
 
     if affected_ids:
