@@ -156,6 +156,7 @@ def test_list_athletes_uses_latest_anomaly_score(client, db_session):
     assert len(data) == 1
     assert data[0]["latest_anomaly_score"] == pytest.approx(0.91)
     assert data[0]["priority_score"] == pytest.approx(0.91)
+    assert data[0]["scored"] is True
 
 
 def test_list_athletes_no_anomaly_record_falls_back(client, db_session):
@@ -170,6 +171,7 @@ def test_list_athletes_no_anomaly_record_falls_back(client, db_session):
     assert len(data) == 1
     assert data[0]["latest_anomaly_score"] is None
     assert data[0]["priority_score"] == 0.0
+    assert data[0]["scored"] is False
 
 
 def test_list_athletes_sort_priority_orders_descending(client, db_session):

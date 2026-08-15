@@ -106,8 +106,9 @@ export interface AthleteListItem {
   age: number;
   latest_anomaly_score: number | null;
   latest_uncertainty_score: number | null;
-  priority_score: number;
+  priority_score: number; // collapses "never scored" and "scored, low-risk" to 0 — use `scored` to distinguish
   last_sample_date: string | null;
+  scored: boolean; // true if latest_anomaly_score is non-null; false means never scored, NOT "confirmed low-risk"
 }
 
 export type AthletesResponse = AthleteListItem[];

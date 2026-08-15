@@ -77,6 +77,7 @@ class AthleteListItem(BaseModel):
     latest_uncertainty_score: float | None
     priority_score: float
     last_sample_date: date_type | None
+    scored: bool
 
 
 class AthleteDetail(BaseModel):
@@ -227,6 +228,12 @@ def list_athletes(
         # fallback until it lands.
         latest_uncertainty_score = None
         priority_score = latest_anomaly_score if latest_anomaly_score is not None else 0.0
+        # `priority_score` collapses "never scored" and "scored, found
+        # low-risk" into the same 0.0 for ranking purposes (contract-level
+        # ambiguity, not just a UI gap) — `scored` exposes the distinction
+        # explicitly rather than asking callers to infer it from a
+        # nullable number.
+        scored = latest_anomaly_score is not None
 
         items.append(
             AthleteListItem(
@@ -238,6 +245,7 @@ def list_athletes(
                 latest_uncertainty_score=latest_uncertainty_score,
                 priority_score=priority_score,
                 last_sample_date=last_sample.date if last_sample else None,
+                scored=scored,
             )
         )
 

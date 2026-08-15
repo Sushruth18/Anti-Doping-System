@@ -22,7 +22,10 @@ function Dashboard() {
       <ul>
         {athletes.map((athlete) => (
           <li key={athlete.id}>
-            {athlete.name} — {athlete.sport} — priority {athlete.priority_score}
+            {athlete.name} — {athlete.sport} —{" "}
+            {athlete.scored
+              ? `priority ${(athlete.priority_score * 100).toFixed(0)}%`
+              : "not yet scored"}
           </li>
         ))}
       </ul>

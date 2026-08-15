@@ -100,13 +100,19 @@ interface AthleteListItem {
   latest_uncertainty_score: number | null; // most recent recommendations.uncertainty_score, null if none yet
   priority_score: number;                // see "priority_score definition" below
   last_sample_date: string | null;       // "YYYY-MM-DD", null if no samples yet
+  scored: boolean;                       // true if latest_anomaly_score is non-null; false means never scored — NOT "confirmed low-risk"
 }
 ```
 
 **`priority_score` definition** *(assumption — flagged below)*: equal to
 `latest_anomaly_score` (0 if no anomalies recorded yet). This is the
 single ranking key for `sort=priority`; ties are broken by
-`latest_uncertainty_score` descending.
+`latest_uncertainty_score` descending. **Note**: this collapses "never
+scored" and "scored, found low-risk" into the same `0` value for ranking
+purposes — that ambiguity is intentional for sorting (an unscored athlete
+shouldn't outrank a confirmed low-risk one, or vice versa) but must not be
+read as "this athlete is low-risk." Use `scored` to distinguish the two
+cases; `priority_score` alone cannot.
 
 **Example response**
 
@@ -120,7 +126,8 @@ single ranking key for `sort=priority`; ties are broken by
     "latest_anomaly_score": 0.82,
     "latest_uncertainty_score": 0.35,
     "priority_score": 0.82,
-    "last_sample_date": "2026-07-30"
+    "last_sample_date": "2026-07-30",
+    "scored": true
   }
 ]
 ```
