@@ -1,16 +1,23 @@
 import json
 import math
 from datetime import date as date_type
+from datetime import datetime
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models import Anomaly, Athlete, Sample
 from app.db.session import get_db
-from app.ml.baseline import BIOMARKERS, OBS_VAR_STD_FRACTION, fold_biomarker_posterior
+from app.ml.anomaly import get_anomaly_score
+from app.ml.baseline import (
+    BIOMARKERS,
+    OBS_VAR_STD_FRACTION,
+    compute_current_posterior,
+    fold_biomarker_posterior,
+)
 
 router = APIRouter()
 
@@ -23,6 +30,25 @@ _BIOMARKER_UNITS = {
 }
 
 _TRAJECTORY_CI_LEVEL = 0.95
+
+_ANOMALY_METHOD = "mahalanobis_baseline"
+
+# TODO: unvalidated placeholder pending real anomaly-score calibration data,
+# same status as baseline.OBS_VAR_STD_FRACTION. Maps the raw, unbounded
+# Mahalanobis distance from app.ml.anomaly.get_anomaly_score into the
+# contract's normalized-0-1 anomaly_score via 1 - exp(-distance / SCALE).
+ANOMALY_SCORE_SCALE = 3.0
+
+
+def _normalize_anomaly_score(raw_distance: float) -> float:
+    return 1 - math.exp(-raw_distance / ANOMALY_SCORE_SCALE)
+
+
+def _compute_off_score(hb: float, ret_pct: float) -> float:
+    # Locked formula per CLAUDE.md: off_score = (hb_g_dL * 10) - 60 *
+    # sqrt(ret_pct). hb is stored/received in g/dL; convert to g/L (*10)
+    # before applying the formula.
+    return (hb * 10) - 60 * math.sqrt(ret_pct)
 
 
 class BiomarkerStat(BaseModel):
@@ -92,6 +118,76 @@ class TrajectoryResponse(BaseModel):
     athlete_id: int
     ci_level: float
     series: list[BiomarkerTrajectory]
+
+
+class NewSampleInput(BaseModel):
+    # extra="forbid" rejects any unexpected field — including a
+    # client-supplied off_score — with a 422, per api-contract.md's
+    # "reject rather than silently ignore" requirement. off_score is
+    # always server-derived (see _compute_off_score) and never accepted
+    # from the client.
+    model_config = ConfigDict(extra="forbid")
+
+    date: date_type
+    hb: float
+    hct: float
+    ret_pct: float
+    te_ratio: float
+    competition_flag: bool
+    altitude_flag: bool
+    injury_flag: bool
+
+
+class AnomalyOut(BaseModel):
+    """Small Anomaly shape used only by NewSampleResponse.anomaly — no
+    contributing_biomarkers, per api-contract.md's distinct `Anomaly`
+    interface there (as opposed to AnomalyDetail below, used by
+    GET /athletes/{id}/anomalies, which does include it)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    athlete_id: int
+    sample_id: int
+    anomaly_score: float
+    mahalanobis_distance: float
+    method: str
+    created_at: datetime
+
+    @field_serializer("created_at")
+    def _serialize_created_at(self, value: datetime) -> str:
+        return value.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+class NewSampleResponse(BaseModel):
+    sample: SampleOut
+    updated_baseline: BaselinePrior
+    anomaly: AnomalyOut
+
+
+class ContributingBiomarkerOut(BaseModel):
+    biomarker: Literal["hb", "hct", "ret_pct", "off_score", "te_ratio"]
+    observed_value: float
+    posterior_mean: float
+    z_score_squared: float
+    deviation_direction: Literal["above", "below"]
+
+
+class AnomalyDetail(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    athlete_id: int
+    sample_id: int
+    anomaly_score: float
+    mahalanobis_distance: float
+    method: str
+    created_at: datetime
+    contributing_biomarkers: list[ContributingBiomarkerOut]
+
+    @field_serializer("created_at")
+    def _serialize_created_at(self, value: datetime) -> str:
+        return value.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 @router.get("/athletes", response_model=list[AthleteListItem])
@@ -248,3 +344,147 @@ def get_athlete_trajectory(athlete_id: int, db: Session = Depends(get_db)) -> Tr
         ci_level=_TRAJECTORY_CI_LEVEL,
         series=series,
     )
+
+
+@router.post("/athletes/{athlete_id}/samples", response_model=NewSampleResponse, status_code=201)
+def create_athlete_sample(
+    athlete_id: int, body: NewSampleInput, db: Session = Depends(get_db)
+) -> NewSampleResponse:
+    athlete = db.query(Athlete).filter(Athlete.id == athlete_id).first()
+    if athlete is None:
+        raise HTTPException(status_code=404, detail=f"Athlete {athlete_id} not found")
+
+    latest_sample = (
+        db.query(Sample)
+        .filter(Sample.athlete_id == athlete_id)
+        .order_by(Sample.date.desc())
+        .first()
+    )
+    if latest_sample is not None and body.date <= latest_sample.date:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"New sample date {body.date} must be strictly after the athlete's "
+                f"current latest sample date {latest_sample.date}; out-of-order "
+                "ingestion is rejected because compute_current_posterior's fold "
+                "is order-dependent."
+            ),
+        )
+
+    off_score = _compute_off_score(body.hb, body.ret_pct)
+    new_sample = Sample(
+        athlete_id=athlete_id,
+        date=body.date,
+        hb=body.hb,
+        hct=body.hct,
+        ret_pct=body.ret_pct,
+        off_score=off_score,
+        te_ratio=body.te_ratio,
+        competition_flag=body.competition_flag,
+        altitude_flag=body.altitude_flag,
+        injury_flag=body.injury_flag,
+    )
+    db.add(new_sample)
+    db.flush()  # assign new_sample.id without committing yet
+
+    result = get_anomaly_score(athlete_id, db)
+    if result["reason"] is not None:
+        db.rollback()
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Cannot score athlete {athlete_id}: insufficient_history "
+                "(missing or invalid baseline_prior_json — a posterior "
+                "could not be computed for this athlete)."
+            ),
+        )
+
+    raw_distance = result["anomaly_score"]
+    new_anomaly = Anomaly(
+        athlete_id=athlete_id,
+        sample_id=new_sample.id,
+        anomaly_score=_normalize_anomaly_score(raw_distance),
+        mahalanobis_distance=raw_distance,
+        method=_ANOMALY_METHOD,
+        created_at=datetime.utcnow(),
+    )
+    db.add(new_anomaly)
+    db.commit()
+    db.refresh(new_sample)
+    db.refresh(new_anomaly)
+
+    posterior = compute_current_posterior(athlete_id, db)
+    updated_baseline = BaselinePrior(
+        **{
+            biomarker: {"mean": mean, "std": math.sqrt(var)}
+            for biomarker, (mean, var) in posterior.items()
+        }
+    )
+
+    return NewSampleResponse(
+        sample=SampleOut.model_validate(new_sample),
+        updated_baseline=updated_baseline,
+        anomaly=AnomalyOut.model_validate(new_anomaly),
+    )
+
+
+@router.get("/athletes/{athlete_id}/anomalies", response_model=list[AnomalyDetail])
+def get_athlete_anomalies(athlete_id: int, db: Session = Depends(get_db)) -> list[AnomalyDetail]:
+    athlete = db.query(Athlete).filter(Athlete.id == athlete_id).first()
+    if athlete is None:
+        raise HTTPException(status_code=404, detail=f"Athlete {athlete_id} not found")
+
+    anomalies = (
+        db.query(Anomaly)
+        .filter(Anomaly.athlete_id == athlete_id)
+        .order_by(Anomaly.created_at.desc(), Anomaly.id.desc())
+        .all()
+    )
+    if not anomalies:
+        return []
+
+    # contributing_biomarkers can only be freshly computed against the
+    # CURRENT posterior — it's meaningful for the most recent anomaly only;
+    # older rows' originating posterior state can't be reconstructed after
+    # the fact (see docs/api-contract.md discussion), so they get [].
+    latest_contributing_biomarkers: list[ContributingBiomarkerOut] = []
+    live_result = get_anomaly_score(athlete_id, db)
+    if live_result["reason"] is None:
+        posterior = compute_current_posterior(athlete_id, db)
+        latest_sample = (
+            db.query(Sample)
+            .filter(Sample.athlete_id == athlete_id)
+            .order_by(Sample.date.desc())
+            .first()
+        )
+        for entry in live_result["contributing_biomarkers"]:
+            biomarker = entry["biomarker"]
+            posterior_mean, _posterior_var = posterior[biomarker]
+            latest_contributing_biomarkers.append(
+                ContributingBiomarkerOut(
+                    biomarker=biomarker,
+                    observed_value=getattr(latest_sample, biomarker),
+                    posterior_mean=posterior_mean,
+                    z_score_squared=entry["z_score_squared"],
+                    deviation_direction=entry["deviation_direction"],
+                )
+            )
+
+    details: list[AnomalyDetail] = []
+    for index, anomaly in enumerate(anomalies):
+        details.append(
+            AnomalyDetail(
+                id=anomaly.id,
+                athlete_id=anomaly.athlete_id,
+                sample_id=anomaly.sample_id,
+                anomaly_score=anomaly.anomaly_score,
+                mahalanobis_distance=anomaly.mahalanobis_distance,
+                method=anomaly.method,
+                created_at=anomaly.created_at,
+                contributing_biomarkers=(
+                    latest_contributing_biomarkers if index == 0 else []
+                ),
+            )
+        )
+
+    return details

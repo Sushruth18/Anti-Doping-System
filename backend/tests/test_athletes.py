@@ -615,3 +615,260 @@ def test_get_athlete_trajectory_response_matches_pre_refactor_snapshot(client, d
             },
         ],
     }
+
+
+_SAMPLE_BASELINE_PRIOR_JSON = json.dumps(
+    {
+        "hb": {"mean": 14.0, "std": 0.6},
+        "hct": {"mean": 42.0, "std": 1.8},
+        "ret_pct": {"mean": 1.0, "std": 0.25},
+        "off_score": {"mean": 80.0, "std": 9.0},
+        "te_ratio": {"mean": 1.3, "std": 0.3},
+    }
+)
+
+
+def _new_sample_body(sample_date: str, hb=15.0, ret_pct=1.0) -> dict:
+    return {
+        "date": sample_date,
+        "hb": hb,
+        "hct": 44.0,
+        "ret_pct": ret_pct,
+        "te_ratio": 1.5,
+        "competition_flag": False,
+        "altitude_flag": False,
+        "injury_flag": False,
+    }
+
+
+def test_create_athlete_sample_happy_path(client, db_session):
+    athlete = Athlete(
+        name="Test Athlete G",
+        sport="Cycling",
+        age=25,
+        baseline_prior_json=_SAMPLE_BASELINE_PRIOR_JSON,
+    )
+    db_session.add(athlete)
+    db_session.commit()
+    db_session.refresh(athlete)
+
+    response = client.post(
+        f"/athletes/{athlete.id}/samples", json=_new_sample_body("2026-01-01")
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+
+    # off_score hand-computed: (15.0 * 10) - 60 * sqrt(1.0) = 150 - 60 = 90.0
+    # (matches the exact example already in docs/api-contract.md).
+    assert data["sample"]["off_score"] == pytest.approx(90.0)
+    assert data["sample"]["athlete_id"] == athlete.id
+    assert data["sample"]["date"] == "2026-01-01"
+
+    # updated_baseline: posterior after folding in this one sample, for
+    # every biomarker (not just the ones read back for off_score).
+    assert set(data["updated_baseline"].keys()) == {
+        "hb",
+        "hct",
+        "ret_pct",
+        "off_score",
+        "te_ratio",
+    }
+    assert data["updated_baseline"]["hb"]["mean"] != 14.0  # prior moved
+
+    anomaly = data["anomaly"]
+    assert anomaly["athlete_id"] == athlete.id
+    assert anomaly["sample_id"] == data["sample"]["id"]
+    assert anomaly["method"] == "mahalanobis_baseline"
+    assert 0.0 <= anomaly["anomaly_score"] <= 1.0
+    assert anomaly["mahalanobis_distance"] >= 0.0
+    assert anomaly["created_at"].endswith("Z")
+
+    # Persisted rows actually exist in the DB.
+    db_session.expire_all()
+    samples = db_session.query(Sample).filter(Sample.athlete_id == athlete.id).all()
+    assert len(samples) == 1
+    anomalies = db_session.query(Anomaly).filter(Anomaly.athlete_id == athlete.id).all()
+    assert len(anomalies) == 1
+    assert anomalies[0].sample_id == samples[0].id
+
+
+def test_create_athlete_sample_out_of_order_returns_422(client, db_session):
+    athlete = Athlete(
+        name="Test Athlete H",
+        sport="Cycling",
+        age=25,
+        baseline_prior_json=_SAMPLE_BASELINE_PRIOR_JSON,
+    )
+    db_session.add(athlete)
+    db_session.commit()
+    db_session.refresh(athlete)
+
+    first = client.post(
+        f"/athletes/{athlete.id}/samples", json=_new_sample_body("2026-02-01")
+    )
+    assert first.status_code == 201
+
+    # Same date as the existing latest sample -> rejected (must be strictly after).
+    same_date = client.post(
+        f"/athletes/{athlete.id}/samples", json=_new_sample_body("2026-02-01")
+    )
+    assert same_date.status_code == 422
+
+    # Earlier date -> also rejected.
+    earlier = client.post(
+        f"/athletes/{athlete.id}/samples", json=_new_sample_body("2026-01-01")
+    )
+    assert earlier.status_code == 422
+
+    # Only the first (accepted) sample should have persisted.
+    db_session.expire_all()
+    samples = db_session.query(Sample).filter(Sample.athlete_id == athlete.id).all()
+    assert len(samples) == 1
+
+
+def test_create_athlete_sample_insufficient_history_returns_422_and_rolls_back(
+    client, db_session
+):
+    # No baseline_prior_json -> compute_current_posterior raises ->
+    # get_anomaly_score returns reason="insufficient_history".
+    athlete = Athlete(name="Test Athlete I", sport="Cycling", age=25)
+    db_session.add(athlete)
+    db_session.commit()
+    db_session.refresh(athlete)
+
+    response = client.post(
+        f"/athletes/{athlete.id}/samples", json=_new_sample_body("2026-01-01")
+    )
+
+    assert response.status_code == 422
+    assert "insufficient_history" in response.json()["detail"]
+
+    # The flushed-but-not-committed Sample must have been rolled back, not
+    # persisted.
+    db_session.expire_all()
+    samples = db_session.query(Sample).filter(Sample.athlete_id == athlete.id).all()
+    assert samples == []
+    anomalies = db_session.query(Anomaly).filter(Anomaly.athlete_id == athlete.id).all()
+    assert anomalies == []
+
+
+def test_create_athlete_sample_unknown_athlete_returns_404(client, db_session):
+    response = client.post(
+        "/athletes/999999/samples", json=_new_sample_body("2026-01-01")
+    )
+    assert response.status_code == 404
+
+
+def test_create_athlete_sample_rejects_client_supplied_off_score(client, db_session):
+    athlete = Athlete(
+        name="Test Athlete J",
+        sport="Cycling",
+        age=25,
+        baseline_prior_json=_SAMPLE_BASELINE_PRIOR_JSON,
+    )
+    db_session.add(athlete)
+    db_session.commit()
+    db_session.refresh(athlete)
+
+    body = _new_sample_body("2026-01-01")
+    body["off_score"] = 99.0
+
+    response = client.post(f"/athletes/{athlete.id}/samples", json=body)
+    assert response.status_code == 422
+
+
+def test_get_athlete_anomalies_no_anomalies_yet_returns_empty_array(client, db_session):
+    athlete = Athlete(
+        name="Test Athlete K",
+        sport="Cycling",
+        age=25,
+        baseline_prior_json=_SAMPLE_BASELINE_PRIOR_JSON,
+    )
+    db_session.add(athlete)
+    db_session.commit()
+    db_session.refresh(athlete)
+
+    # A sample exists, but no Anomaly row has been persisted for it (never
+    # went through POST /athletes/{id}/samples).
+    db_session.add(
+        Sample(
+            athlete_id=athlete.id,
+            date=date(2026, 1, 1),
+            hb=15.0,
+            hct=44.0,
+            ret_pct=1.0,
+            off_score=90.0,
+            te_ratio=1.5,
+            competition_flag=False,
+            altitude_flag=False,
+            injury_flag=False,
+        )
+    )
+    db_session.commit()
+
+    response = client.get(f"/athletes/{athlete.id}/anomalies")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_get_athlete_anomalies_unknown_athlete_returns_404(client, db_session):
+    response = client.get("/athletes/999999/anomalies")
+    assert response.status_code == 404
+
+
+def test_get_athlete_anomalies_happy_path_contributing_biomarkers_latest_only(
+    client, db_session
+):
+    athlete = Athlete(
+        name="Test Athlete L",
+        sport="Cycling",
+        age=25,
+        baseline_prior_json=_SAMPLE_BASELINE_PRIOR_JSON,
+    )
+    db_session.add(athlete)
+    db_session.commit()
+    db_session.refresh(athlete)
+
+    first_post = client.post(
+        f"/athletes/{athlete.id}/samples", json=_new_sample_body("2026-01-01")
+    )
+    assert first_post.status_code == 201
+    second_post = client.post(
+        f"/athletes/{athlete.id}/samples", json=_new_sample_body("2026-02-01", hb=15.8)
+    )
+    assert second_post.status_code == 201
+
+    response = client.get(f"/athletes/{athlete.id}/anomalies")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+
+    # Descending by created_at -> the second (most recent) POST comes first.
+    assert data[0]["sample_id"] == second_post.json()["sample"]["id"]
+    assert data[1]["sample_id"] == first_post.json()["sample"]["id"]
+
+    # contributing_biomarkers populated on the most recent row only.
+    latest_biomarkers = data[0]["contributing_biomarkers"]
+    assert len(latest_biomarkers) == 5
+    assert {b["biomarker"] for b in latest_biomarkers} == {
+        "hb",
+        "hct",
+        "ret_pct",
+        "off_score",
+        "te_ratio",
+    }
+    for b in latest_biomarkers:
+        assert set(b.keys()) == {
+            "biomarker",
+            "observed_value",
+            "posterior_mean",
+            "z_score_squared",
+            "deviation_direction",
+        }
+        assert b["deviation_direction"] in ("above", "below")
+
+    # Older row gets no contributing_biomarkers.
+    assert data[1]["contributing_biomarkers"] == []
