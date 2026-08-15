@@ -1,23 +1,402 @@
-{
-  "transfusion": [
-    8,
-    18,
-    30,
-    38,
-    65
-  ],
-  "epo": [
-    19,
-    31,
-    39,
-    42,
-    67
-  ],
-  "steroid": [
-    23,
-    55,
-    64,
-    72,
-    76
-  ]
-}
+[
+  {
+    "athlete_id": 1,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 2,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 3,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 4,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 5,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 6,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 7,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 8,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "transfusion"
+  },
+  {
+    "athlete_id": 9,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 10,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 11,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 12,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 13,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 14,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 15,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 16,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 17,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 18,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "transfusion"
+  },
+  {
+    "athlete_id": 19,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "epo"
+  },
+  {
+    "athlete_id": 20,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 21,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 22,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 23,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "steroid"
+  },
+  {
+    "athlete_id": 24,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 25,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 26,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 27,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 28,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 29,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 30,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "transfusion"
+  },
+  {
+    "athlete_id": 31,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "epo"
+  },
+  {
+    "athlete_id": 32,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 33,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 34,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 35,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 36,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 37,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 38,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "transfusion"
+  },
+  {
+    "athlete_id": 39,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "epo"
+  },
+  {
+    "athlete_id": 40,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 41,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 42,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "epo"
+  },
+  {
+    "athlete_id": 43,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 44,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 45,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 46,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 47,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 48,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 49,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 50,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 51,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 52,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 53,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 54,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 55,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "steroid"
+  },
+  {
+    "athlete_id": 56,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 57,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 58,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 59,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 60,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 61,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 62,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 63,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 64,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "steroid"
+  },
+  {
+    "athlete_id": 65,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "transfusion"
+  },
+  {
+    "athlete_id": 66,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 67,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "epo"
+  },
+  {
+    "athlete_id": 68,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 69,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 70,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 71,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 72,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "steroid"
+  },
+  {
+    "athlete_id": 73,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 74,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 75,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 76,
+    "is_synthetic_anomaly": true,
+    "pattern_type": "steroid"
+  },
+  {
+    "athlete_id": 77,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 78,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 79,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  },
+  {
+    "athlete_id": 80,
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
+  }
+]
