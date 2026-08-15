@@ -1,6 +1,7 @@
 from datetime import date as date_type
+from datetime import datetime
 
-from sqlalchemy import Boolean, Date, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
@@ -30,3 +31,15 @@ class Sample(Base):
     competition_flag: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     altitude_flag: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     injury_flag: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+
+class Anomaly(Base):
+    __tablename__ = "anomalies"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    athlete_id: Mapped[int] = mapped_column(ForeignKey("athletes.id"), nullable=False)
+    sample_id: Mapped[int] = mapped_column(ForeignKey("samples.id"), nullable=False)
+    anomaly_score: Mapped[float] = mapped_column(Float, nullable=False)
+    mahalanobis_distance: Mapped[float] = mapped_column(Float, nullable=False)
+    method: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
