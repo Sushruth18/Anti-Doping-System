@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getAthleteTrajectory } from "../api/client";
+import { getAthleteAnomalies, getAthleteTrajectory } from "../api/client";
+import ExplanationPanel from "../components/ExplanationPanel";
 import TrajectoryChart from "../components/TrajectoryChart";
-import type { BiomarkerTrajectory, TrajectoryResponse } from "../types/api";
+import type { AnomalyDetail, BiomarkerTrajectory, TrajectoryResponse } from "../types/api";
 
 function AthleteProfile() {
   const { id } = useParams<{ id: string }>();
@@ -10,6 +11,10 @@ function AthleteProfile() {
   const [selectedBiomarker, setSelectedBiomarker] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  const [anomalies, setAnomalies] = useState<AnomalyDetail[] | null>(null);
+  const [anomaliesLoading, setAnomaliesLoading] = useState(true);
+  const [anomaliesError, setAnomaliesError] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -22,6 +27,16 @@ function AthleteProfile() {
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    setAnomaliesLoading(true);
+    setAnomaliesError(false);
+    getAthleteAnomalies(Number(id))
+      .then((data) => setAnomalies(data))
+      .catch(() => setAnomaliesError(true))
+      .finally(() => setAnomaliesLoading(false));
   }, [id]);
 
   if (loading) return <div>Loading...</div>;
@@ -47,6 +62,14 @@ function AthleteProfile() {
       </div>
 
       {selected && <TrajectoryChart points={selected.points} />}
+
+      <div className="mt-6">
+        {anomaliesLoading && <div>Loading...</div>}
+        {!anomaliesLoading && anomaliesError && <div>Failed to load</div>}
+        {!anomaliesLoading && !anomaliesError && anomalies && (
+          <ExplanationPanel anomalies={anomalies} />
+        )}
+      </div>
     </div>
   );
 }
