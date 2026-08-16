@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getAthleteAnomalies, getAthleteTrajectory } from "../api/client";
+import { getAthleteAnomalies, getAthleteRecommendation, getAthleteTrajectory } from "../api/client";
+import DecisionPanel from "../components/DecisionPanel";
 import ExplanationPanel from "../components/ExplanationPanel";
+import RecommendationPanel from "../components/RecommendationPanel";
 import TrajectoryChart from "../components/TrajectoryChart";
-import type { AnomalyDetail, BiomarkerTrajectory, TrajectoryResponse } from "../types/api";
+import type {
+  AnomalyDetail,
+  BiomarkerTrajectory,
+  Recommendation,
+  TrajectoryResponse,
+} from "../types/api";
 
 function AthleteProfile() {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +22,10 @@ function AthleteProfile() {
   const [anomalies, setAnomalies] = useState<AnomalyDetail[] | null>(null);
   const [anomaliesLoading, setAnomaliesLoading] = useState(true);
   const [anomaliesError, setAnomaliesError] = useState(false);
+
+  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
+  const [recommendationLoading, setRecommendationLoading] = useState(true);
+  const [recommendationError, setRecommendationError] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -37,6 +48,16 @@ function AthleteProfile() {
       .then((data) => setAnomalies(data))
       .catch(() => setAnomaliesError(true))
       .finally(() => setAnomaliesLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    setRecommendationLoading(true);
+    setRecommendationError(false);
+    getAthleteRecommendation(Number(id))
+      .then((data) => setRecommendation(data))
+      .catch(() => setRecommendationError(true))
+      .finally(() => setRecommendationLoading(false));
   }, [id]);
 
   const backLink = (
@@ -121,6 +142,27 @@ function AthleteProfile() {
           {!anomaliesLoading && !anomaliesError && anomalies && (
             <ExplanationPanel anomalies={anomalies} />
           )}
+        </div>
+
+        <div className="rounded-lg bg-white p-4 shadow-sm">
+          {recommendationLoading && (
+            <div className="flex items-center justify-center gap-3 py-8">
+              <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-gray-600" />
+              <span className="text-sm text-gray-500">Loading recommendation…</span>
+            </div>
+          )}
+          {!recommendationLoading && recommendationError && (
+            <p className="py-4 text-center text-sm font-medium text-red-600">
+              Unable to load athlete data
+            </p>
+          )}
+          {!recommendationLoading && !recommendationError && recommendation && (
+            <RecommendationPanel recommendation={recommendation} />
+          )}
+        </div>
+
+        <div className="rounded-lg bg-white p-4 shadow-sm">
+          <DecisionPanel athleteId={Number(id)} />
         </div>
       </div>
     </div>

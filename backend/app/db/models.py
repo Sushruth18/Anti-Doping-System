@@ -43,3 +43,26 @@ class Anomaly(Base):
     mahalanobis_distance: Mapped[float] = mapped_column(Float, nullable=False)
     method: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+
+class Case(Base):
+    __tablename__ = "cases"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    athlete_id: Mapped[int] = mapped_column(ForeignKey("athletes.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False)
+    opened_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    investigator_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id"), nullable=True)
+    athlete_id: Mapped[int] = mapped_column(ForeignKey("athletes.id"), nullable=False)
+    actor: Mapped[str] = mapped_column(String, nullable=False)
+    action: Mapped[str] = mapped_column(String, nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    details_json: Mapped[str | None] = mapped_column(Text, nullable=True)

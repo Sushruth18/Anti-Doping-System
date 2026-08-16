@@ -38,3 +38,5 @@ follow-up), both issues should be resolved together — decide then whether
 `GET /athletes/{id}/recommendation` reads/writes a persisted row (giving
 it a real id) or stays compute-only with `id` remaining nullable by
 design.
+
+`GET /audit/{athlete_id}` (Day 5, not yet built) will hit this same issue too — its `AuditEvent` union includes a `recommendation` variant, and without a persisted `recommendations` table there's no real history to show, only the current live-computed recommendation; resolve this as a third symptom of the same root cause when the `recommendations` table lands, not ad-hoc for `/audit` specifically.
