@@ -131,11 +131,46 @@ def backfill_anomalies(db: Session) -> BackfillSummary:
     return summary
 
 
+def rescore_all_anomalies(db: Session) -> int:
+    """One-time repair pass: recompute `anomaly_score` for EVERY existing
+    Anomaly row from its already-persisted `mahalanobis_distance`, using
+    whatever `ANOMALY_SCORE_SCALE` is currently in `app.ml.anomaly`.
+
+    Only runs when explicitly requested (--force / FORCE_RESCORE) — see
+    `run()`. Exists because `backfill_anomalies` above is intentionally
+    idempotent-by-skip (dedup on `sample_id`), so rows written under a
+    since-recalibrated `ANOMALY_SCORE_SCALE` are never revisited by a normal
+    boot run. This does not recompute `mahalanobis_distance` itself (that
+    raw-distance formula hasn't changed) and does not touch
+    `normalize_anomaly_score` or the scale constant — it only reapplies the
+    current scale to the existing raw distance.
+    """
+    anomalies = db.query(Anomaly).all()
+    for anomaly in anomalies:
+        anomaly.anomaly_score = normalize_anomaly_score(anomaly.mahalanobis_distance)
+    db.commit()
+    return len(anomalies)
+
+
 def run() -> BackfillSummary:
+    force = "--force" in sys.argv[1:] or os.environ.get("FORCE_RESCORE", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+
     db = SessionLocal()
     try:
         summary = backfill_anomalies(db)
         print(f"[backfill_anomalies] done: {summary}")
+
+        if force:
+            rescored = rescore_all_anomalies(db)
+            print(
+                f"[backfill_anomalies] --force: rescored {rescored} existing "
+                "anomaly rows using the current ANOMALY_SCORE_SCALE"
+            )
+
         return summary
     except Exception:
         db.rollback()
