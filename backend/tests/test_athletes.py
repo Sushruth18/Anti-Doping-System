@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from app.db.models import Anomaly, Athlete, Sample
 from app.db.session import Base, get_db
 from app.main import app
-from app.ml.baseline import update_posterior
+from app.ml.baseline import compute_obs_var, update_posterior
 
 
 @pytest.fixture()
@@ -405,9 +405,11 @@ def test_get_athlete_trajectory_with_several_samples(client, db_session):
     # (already unit-tested in test_ml.py) update_posterior function, to
     # check the endpoint's wiring — obs_var scaling, sequential chaining,
     # ordering, serialization — rather than re-deriving the Bayesian math
-    # by hand a second time.
+    # by hand a second time. Uses compute_obs_var (same function production
+    # code calls) rather than re-deriving the CV arithmetic here too — that's
+    # covered separately in test_baseline.py's compute_obs_var tests.
     prior_mean, prior_std = 14.0, 0.6
-    obs_var = (0.25 * prior_std) ** 2
+    obs_var = compute_obs_var("hb", json.loads(baseline_prior_json))
     mean, var = prior_mean, prior_std**2
     expected_means = []
     for hb in (14.1, 14.3, 14.6):
@@ -426,12 +428,19 @@ def test_get_athlete_trajectory_with_several_samples(client, db_session):
 def test_get_athlete_trajectory_response_matches_pre_refactor_snapshot(client, db_session):
     # Byte-for-byte snapshot of the actual /athletes/{id}/trajectory JSON
     # response, captured live from a real TestClient request against this
-    # exact fixture BEFORE the fold_biomarker_posterior/compute_current_posterior
-    # refactor of get_athlete_trajectory (which moved the fold loop's math
-    # out of this route and into app/ml/baseline.py). This guards that the
-    # refactor is a pure internal restructuring with zero change to the
-    # wire response, for the same reasons/fixture as
-    # test_get_athlete_trajectory_with_several_samples above.
+    # exact fixture. Originally captured before the
+    # fold_biomarker_posterior/compute_current_posterior refactor of
+    # get_athlete_trajectory (which moved the fold loop's math out of this
+    # route and into app/ml/baseline.py), to guard that refactor was a pure
+    # internal restructuring with zero change to the wire response.
+    #
+    # Re-captured (live, via this same TestClient fixture) after replacing
+    # OBS_VAR_STD_FRACTION with CV-based compute_obs_var — that change is
+    # NOT wire-response-neutral by design (obs_var widened for every
+    # biomarker, so posterior means/CI bands genuinely shift), so this
+    # snapshot's numbers changed; its job is now to pin the new values, not
+    # to prove they're unchanged. See app/ml/baseline.py's BIOMARKER_CV
+    # docstring for the CV values/sources behind this shift.
     baseline_prior_json = json.dumps(
         {
             "hb": {"mean": 14.0, "std": 0.6},
@@ -487,23 +496,23 @@ def test_get_athlete_trajectory_response_matches_pre_refactor_snapshot(client, d
                     {
                         "date": "2026-01-01",
                         "observed": 14.1,
-                        "expected": 14.094117647058823,
-                        "ci_lower": 13.808895752016095,
-                        "ci_upper": 14.379339542101551,
+                        "expected": 14.085005100306017,
+                        "ci_lower": 13.62961969870443,
+                        "ci_upper": 14.540390501907604,
                     },
                     {
                         "date": "2026-01-15",
                         "observed": 14.3,
-                        "expected": 14.193939393939395,
-                        "ci_lower": 13.989224070535494,
-                        "ci_upper": 14.398654717343296,
+                        "expected": 14.183789744532254,
+                        "ci_lower": 13.848988353661786,
+                        "ci_upper": 14.51859113540272,
                     },
                     {
                         "date": "2026-02-01",
                         "observed": 14.6,
-                        "expected": 14.3265306122449,
-                        "ci_lower": 14.1585306122449,
-                        "ci_upper": 14.4945306122449,
+                        "expected": 14.314821810855056,
+                        "ci_lower": 14.037688316068241,
+                        "ci_upper": 14.591955305641871,
                     },
                 ],
             },
@@ -514,23 +523,23 @@ def test_get_athlete_trajectory_response_matches_pre_refactor_snapshot(client, d
                     {
                         "date": "2026-01-01",
                         "observed": 42.2,
-                        "expected": 42.18823529411765,
-                        "ci_lower": 41.33256960898947,
-                        "ci_upper": 43.043900979245834,
+                        "expected": 42.17280940083141,
+                        "ci_lower": 40.8719721422128,
+                        "ci_upper": 43.473646659450026,
                     },
                     {
                         "date": "2026-01-15",
                         "observed": 42.6,
-                        "expected": 42.3878787878788,
-                        "ci_lower": 41.773732817667096,
-                        "ci_upper": 43.0020247580905,
+                        "expected": 42.37082627304144,
+                        "ci_lower": 41.41804209243164,
+                        "ci_upper": 43.323610453651234,
                     },
                     {
                         "date": "2026-02-01",
                         "observed": 43.0,
-                        "expected": 42.58775510204082,
-                        "ci_lower": 42.083755102040826,
-                        "ci_upper": 43.09175510204082,
+                        "expected": 42.570099345089574,
+                        "ci_lower": 41.78252184294715,
+                        "ci_upper": 43.357676847232,
                     },
                 ],
             },
@@ -541,23 +550,23 @@ def test_get_athlete_trajectory_response_matches_pre_refactor_snapshot(client, d
                     {
                         "date": "2026-01-01",
                         "observed": 0.95,
-                        "expected": 0.9529411764705882,
-                        "ci_lower": 0.834098720202785,
-                        "ci_upper": 1.0717836327383914,
+                        "expected": 0.9593628088426528,
+                        "ci_lower": 0.7473245857261148,
+                        "ci_upper": 1.1714010319591908,
                     },
                     {
                         "date": "2026-01-15",
                         "observed": 0.9,
-                        "expected": 0.9272727272727274,
-                        "ci_lower": 0.8419746758544354,
-                        "ci_upper": 1.0125707786910194,
+                        "expected": 0.9327474892395984,
+                        "ci_lower": 0.7752600435419579,
+                        "ci_upper": 1.0902349349372389,
                     },
                     {
                         "date": "2026-02-01",
                         "observed": 0.85,
-                        "expected": 0.9020408163265305,
-                        "ci_lower": 0.8320408163265306,
-                        "ci_upper": 0.9720408163265305,
+                        "expected": 0.9071322436849927,
+                        "ci_lower": 0.7762715655281561,
+                        "ci_upper": 1.0379929218418293,
                     },
                 ],
             },
@@ -568,23 +577,23 @@ def test_get_athlete_trajectory_response_matches_pre_refactor_snapshot(client, d
                     {
                         "date": "2026-01-01",
                         "observed": 82.0,
-                        "expected": 81.88235294117648,
-                        "ci_lower": 77.60402451553557,
-                        "ci_upper": 86.16068136681739,
+                        "expected": 81.61498708010336,
+                        "ci_lower": 73.87533862946073,
+                        "ci_upper": 89.354635530746,
                     },
                     {
                         "date": "2026-01-15",
                         "observed": 84.0,
-                        "expected": 82.90909090909089,
-                        "ci_lower": 79.83836105803238,
-                        "ci_upper": 85.97982076014941,
+                        "expected": 82.6804860614725,
+                        "ci_lower": 76.92366331375152,
+                        "ci_upper": 88.43730880919347,
                     },
                     {
                         "date": "2026-02-01",
                         "observed": 87.0,
-                        "expected": 84.24489795918366,
-                        "ci_lower": 81.72489795918366,
-                        "ci_upper": 86.76489795918366,
+                        "expected": 84.01432806324112,
+                        "ci_lower": 79.22817635008536,
+                        "ci_upper": 88.80047977639688,
                     },
                 ],
             },
@@ -595,23 +604,23 @@ def test_get_athlete_trajectory_response_matches_pre_refactor_snapshot(client, d
                     {
                         "date": "2026-01-01",
                         "observed": 1.32,
-                        "expected": 1.3188235294117647,
-                        "ci_lower": 1.176212581890401,
-                        "ci_upper": 1.4614344769331284,
+                        "expected": 1.3124347177319078,
+                        "ci_lower": 0.950796020099908,
+                        "ci_upper": 1.6740734153639076,
                     },
                     {
                         "date": "2026-01-15",
                         "observed": 1.35,
-                        "expected": 1.333939393939394,
-                        "ci_lower": 1.2315817322374436,
-                        "ci_upper": 1.4362970556413444,
+                        "expected": 1.326836374789143,
+                        "ci_lower": 1.042858285347489,
+                        "ci_upper": 1.6108144642307969,
                     },
                     {
                         "date": "2026-02-01",
                         "observed": 1.4,
-                        "expected": 1.355510204081633,
-                        "ci_lower": 1.2715102040816328,
-                        "ci_upper": 1.439510204081633,
+                        "expected": 1.3471122935373019,
+                        "ci_lower": 1.1056693085525706,
+                        "ci_upper": 1.5885552785220332,
                     },
                 ],
             },

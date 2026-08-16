@@ -14,8 +14,8 @@ from app.db.session import get_db
 from app.ml.anomaly import ANOMALY_METHOD, get_anomaly_score, normalize_anomaly_score
 from app.ml.baseline import (
     BIOMARKERS,
-    OBS_VAR_STD_FRACTION,
     compute_current_posterior,
+    compute_obs_var,
     fold_biomarker_posterior,
 )
 
@@ -306,7 +306,7 @@ def get_athlete_trajectory(athlete_id: int, db: Session = Depends(get_db)) -> Tr
     for biomarker in BIOMARKERS:
         prior_entry = baseline_data[biomarker]
         prior_std = prior_entry["std"]
-        obs_var = (OBS_VAR_STD_FRACTION * prior_std) ** 2
+        obs_var = compute_obs_var(biomarker, baseline_data)
 
         mean = prior_entry["mean"]
         var = prior_std**2

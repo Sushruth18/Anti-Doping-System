@@ -37,7 +37,7 @@ BIOMARKERS = ("hb", "hct", "ret_pct", "off_score", "te_ratio")
 ANOMALY_METHOD = "mahalanobis_baseline"
 
 # TODO: unvalidated placeholder pending real anomaly-score calibration data,
-# same status as baseline.OBS_VAR_STD_FRACTION. Maps the raw, unbounded
+# same status as baseline.BIOMARKER_CV. Maps the raw, unbounded
 # Mahalanobis distance from get_anomaly_score into the contract's
 # normalized-0-1 anomaly_score via 1 - exp(-distance / SCALE).
 ANOMALY_SCORE_SCALE = 10.0

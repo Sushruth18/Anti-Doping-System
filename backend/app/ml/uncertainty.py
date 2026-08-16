@@ -8,17 +8,17 @@ cross-biomarker scale constant. This avoids the recalibration problem
 separately right for every biomarker despite their prior variances spanning
 very different absolute ranges, e.g. off_score ~O(100) vs te_ratio ~O(0.1)).
 
-Known limitation, current seed data: the resulting score is currently
-degenerate. `baseline.OBS_VAR_STD_FRACTION` scales `obs_var` as a fixed
-fraction of `prior_var` (`obs_var = (OBS_VAR_STD_FRACTION * prior_std) ** 2`),
-which makes `posterior_var / prior_var` reduce algebraically to `1 / (1 +
-n / OBS_VAR_STD_FRACTION**2)` -- a function of sample count `n` alone, with
-`prior_var` canceling out completely. Combined with every seeded athlete
-having the same `n=5` sample count, every athlete/biomarker currently
-produces the identical uncertainty score regardless of actual observed
-values. This is a known limitation of `baseline.py`'s `OBS_VAR_STD_FRACTION`
-placeholder, not a bug in this file -- revisit once real per-biomarker
-measurement noise variances and/or varied sample counts are available.
+Formerly degenerate, now resolved: `baseline.py` used to scale `obs_var` as
+a fixed fraction of each biomarker's own `prior_var`
+(`OBS_VAR_STD_FRACTION`), which made `posterior_var / prior_var` reduce
+algebraically to a function of sample count `n` alone -- `prior_var`
+canceled out completely, so every athlete/biomarker with the same `n`
+produced the identical uncertainty score regardless of actual observed
+values. `baseline.py` now derives `obs_var` from each biomarker's
+analytical CV and prior *mean* instead (`compute_obs_var`,
+`BIOMARKER_CV`), which doesn't cancel against `prior_var` the same way --
+confirmed empirically across the 80 seeded athletes: 23 distinct ratio
+values (not 1), spanning ~0.026-0.189.
 """
 
 from __future__ import annotations
