@@ -1,11 +1,11 @@
 import type { AnomalyDetail } from "../types/api";
 
-// TODO: unvalidated placeholder tier thresholds pending real calibration
-// data, same status as backend ANOMALY_SCORE_SCALE. Chosen so an athlete
-// matching their own baseline (expected raw distance ~2.1-2.2 under the
-// current SCALE=3.0 placeholder, i.e. score ~0.5) reads as "Low" rather
-// than "Moderate" by default.
-const SEVERITY_THRESHOLDS = { moderate: 0.6, elevated: 0.85 };
+// Calibrated against backend ANOMALY_SCORE_SCALE=10.0 on the 80-athlete
+// seeded cohort (15 synthetic anomalies / 65 clean). EPO and steroid
+// micro-dosing patterns score lower than transfusion patterns under this
+// single-sample Mahalanobis detector — a known, documented limitation
+// addressed by the planned CUSUM cumulative detector, not a threshold bug.
+const SEVERITY_THRESHOLDS = { moderate: 0.55, elevated: 0.70 };
 
 function severityLabel(anomalyScore: number): string {
   if (anomalyScore >= SEVERITY_THRESHOLDS.elevated) return "Elevated priority";

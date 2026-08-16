@@ -40,7 +40,7 @@ ANOMALY_METHOD = "mahalanobis_baseline"
 # same status as baseline.OBS_VAR_STD_FRACTION. Maps the raw, unbounded
 # Mahalanobis distance from get_anomaly_score into the contract's
 # normalized-0-1 anomaly_score via 1 - exp(-distance / SCALE).
-ANOMALY_SCORE_SCALE = 3.0
+ANOMALY_SCORE_SCALE = 10.0
 
 
 def normalize_anomaly_score(raw_distance: float) -> float:
