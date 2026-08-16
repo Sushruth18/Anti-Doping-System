@@ -11,13 +11,19 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Anomaly, Athlete, Sample
 from app.db.session import get_db
-from app.ml.anomaly import ANOMALY_METHOD, get_anomaly_score, normalize_anomaly_score
+from app.ml.anomaly import (
+    ANOMALY_METHOD,
+    get_anomaly_score,
+    normalize_anomaly_score,
+    rank_contributing_biomarkers,
+)
 from app.ml.baseline import (
     BIOMARKERS,
     compute_current_posterior,
     compute_obs_var,
     fold_biomarker_posterior,
 )
+from app.ml.uncertainty import compute_athlete_uncertainty_score, compute_uncertainty_score
 
 router = APIRouter()
 
@@ -30,6 +36,48 @@ _BIOMARKER_UNITS = {
 }
 
 _TRAJECTORY_CI_LEVEL = 0.95
+
+
+def _compute_latest_uncertainty_score(athlete_id: int, db: Session) -> float | None:
+    """Live-computed `compute_athlete_uncertainty_score` for an athlete's
+    current posterior and latest sample.
+
+    The contract documents `latest_uncertainty_score` as sourced from
+    `recommendations.uncertainty_score`, but the `recommendations` table
+    doesn't exist yet (Day 3+, see CLAUDE.md) — this recomputes it live
+    from the current posterior instead, the same stand-in pattern
+    `get_athlete_anomalies` already uses for `contributing_biomarkers`.
+    Mirrors `get_anomaly_score`'s failure handling: returns `None` rather
+    than raising when the athlete has no valid posterior/samples.
+    """
+    try:
+        posterior = compute_current_posterior(athlete_id, db)
+    except ValueError:
+        return None
+
+    latest_sample = (
+        db.query(Sample)
+        .filter(Sample.athlete_id == athlete_id)
+        .order_by(Sample.date.desc())
+        .first()
+    )
+    if latest_sample is None:
+        return None
+
+    athlete = db.query(Athlete).filter(Athlete.id == athlete_id).first()
+    baseline_data = json.loads(athlete.baseline_prior_json)
+    per_biomarker_scores = {
+        biomarker: compute_uncertainty_score(
+            posterior[biomarker][1], baseline_data[biomarker]["std"] ** 2
+        )
+        for biomarker in BIOMARKERS
+    }
+
+    sample_values = {biomarker: getattr(latest_sample, biomarker) for biomarker in BIOMARKERS}
+    contributions = rank_contributing_biomarkers(posterior, sample_values)
+    z2_by_biomarker = {entry["biomarker"]: entry["z_score_squared"] for entry in contributions}
+
+    return compute_athlete_uncertainty_score(per_biomarker_scores, z2_by_biomarker)
 
 
 def _compute_off_score(hb: float, ret_pct: float) -> float:
@@ -224,9 +272,16 @@ def list_athletes(
         )
         latest_anomaly_score = latest_anomaly_by_athlete.get(athlete.id)
         # `recommendations` table isn't implemented yet (see docs/schema.md
-        # roadmap), so this stays null per the contract's documented
-        # fallback until it lands.
-        latest_uncertainty_score = None
+        # roadmap), so this is a live recomputation rather than a read from
+        # `recommendations.uncertainty_score` as the contract documents —
+        # see `_compute_latest_uncertainty_score`. Gated on `scored`
+        # (below) since an unscored athlete has no anomaly-driven weights
+        # to aggregate by.
+        latest_uncertainty_score = (
+            _compute_latest_uncertainty_score(athlete.id, db)
+            if latest_anomaly_score is not None
+            else None
+        )
         priority_score = latest_anomaly_score if latest_anomaly_score is not None else 0.0
         # `priority_score` collapses "never scored" and "scored, found
         # low-risk" into the same 0.0 for ranking purposes (contract-level

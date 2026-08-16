@@ -23,6 +23,8 @@ values (not 1), spanning ~0.026-0.189.
 
 from __future__ import annotations
 
+from typing import Mapping
+
 
 def compute_uncertainty_score(posterior_variance: float, prior_variance: float) -> float:
     """Normalize posterior variance to a 0-1 uncertainty score, relative to
@@ -71,3 +73,51 @@ def compute_uncertainty_score(posterior_variance: float, prior_variance: float) 
 
     ratio = posterior_variance / prior_variance
     return max(0.0, min(1.0, ratio))
+
+
+def compute_athlete_uncertainty_score(
+    per_biomarker_scores: Mapping[str, float],
+    z_score_squared_by_biomarker: Mapping[str, float],
+) -> float:
+    """Aggregate an athlete's per-biomarker uncertainty scores (each from
+    `compute_uncertainty_score`) into the single athlete-level score the
+    API contract's `AthleteListItem.latest_uncertainty_score` and
+    `Recommendation.uncertainty_score` fields expect.
+
+    Weighted by each biomarker's `z_score_squared` contribution to that
+    same sample's anomaly score (the same values
+    `app.ml.anomaly.rank_contributing_biomarkers` produces), rather than a
+    plain mean: an investigation compared a plain mean, a max, and this
+    weighted approach across the seeded cohort and found the plain mean
+    collapsed athletes with very different anomaly profiles onto the same
+    aggregate (their five per-biomarker scores were nearly identical), and
+    max was dominated by `te_ratio` for essentially every athlete
+    (`te_ratio`'s CV is structurally higher than the other biomarkers', not
+    because it's usually the anomalous one). Weighting by z² ties the
+    aggregate to which biomarkers actually drove that athlete's anomaly
+    score, so two athletes with the same per-biomarker uncertainty scores
+    but different anomaly drivers get different aggregates.
+
+    Args:
+        per_biomarker_scores: biomarker -> `compute_uncertainty_score`
+            output. One entry per biomarker.
+        z_score_squared_by_biomarker: biomarker -> `z_score_squared`, as
+            produced by `app.ml.anomaly.rank_contributing_biomarkers` for
+            the same athlete and sample `per_biomarker_scores` was computed
+            from. Must have an entry for every key in `per_biomarker_scores`.
+
+    Returns:
+        The z²-weighted average of `per_biomarker_scores`. Falls back to a
+        plain (unweighted) mean when every `z_score_squared` is 0 (e.g. a
+        sample that lands exactly on the posterior mean for every
+        biomarker), since weights would otherwise all be 0/0.
+    """
+    total_z2 = sum(z_score_squared_by_biomarker[biomarker] for biomarker in per_biomarker_scores)
+
+    if total_z2 <= 0:
+        return sum(per_biomarker_scores.values()) / len(per_biomarker_scores)
+
+    return sum(
+        score * (z_score_squared_by_biomarker[biomarker] / total_z2)
+        for biomarker, score in per_biomarker_scores.items()
+    )
