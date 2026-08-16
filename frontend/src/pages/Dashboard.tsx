@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getAthletes } from "../api/client";
 import type { AthleteListItem } from "../types/api";
 
@@ -10,6 +11,7 @@ function scoreBadgeClasses(priorityScore: number): string {
 }
 
 function Dashboard() {
+  const navigate = useNavigate();
   const [athletes, setAthletes] = useState<AthleteListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -33,7 +35,8 @@ function Dashboard() {
           {athletes.map((athlete) => (
             <li
               key={athlete.id}
-              className="rounded-lg bg-white p-4 shadow-sm transition hover:shadow-md"
+              onClick={() => navigate(`/athlete/${athlete.id}`)}
+              className="cursor-pointer rounded-lg bg-white p-4 shadow-sm transition hover:shadow-md"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
