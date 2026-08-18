@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.athletes import router as athletes_router
 from app.routes.cases import router as cases_router
 from app.routes.recommendations import router as recommendations_router
+from app.routes.simulation import router as simulation_router
 
 app = FastAPI(title="Adaptive Anti-Doping Defense Engine")
 
@@ -35,6 +36,7 @@ app.add_middleware(
 app.include_router(athletes_router)
 app.include_router(cases_router)
 app.include_router(recommendations_router)
+app.include_router(simulation_router)
 
 
 @app.get("/health")
