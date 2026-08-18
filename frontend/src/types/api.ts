@@ -244,6 +244,8 @@ export interface EvasionSimulationResponse {
   single_sample_flagged_any: boolean; // true if any entry >= 0.55, the same "moderate" cutoff ExplanationPanel.tsx uses
   cusum_result: CusumResult;
   cusum_flagged: boolean; // echoes cusum_result.flagged
+  baseline_window_used: number; // earliest N samples held out to establish the CUSUM baseline mean/std
+  detection_sample_count: number; // sample_count - baseline_window_used; length of cusum_result's arrays
 }
 
 // ---------------------------------------------------------------------------

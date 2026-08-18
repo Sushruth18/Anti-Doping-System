@@ -542,15 +542,16 @@ targets.
 |---|---|---|---|
 | `athlete_id` | integer | yes | `404` if unknown. |
 | `pattern` | string enum | no | `"micro_dosing"` (default) → biomarker `hb` (EPO). `"steroid_micro_dosing"` → biomarker `te_ratio`. `422` for anything else. |
+| `baseline_window` | integer | no | Default `2`, minimum `2`. Number of the athlete's **earliest** chronological samples used only to establish the CUSUM baseline mean/std (plain mean/std of that window, not the Bayesian posterior — see below); those samples are held out from the CUSUM detection series itself. `422` if `< 2`. |
 
 **Response `200`** — `EvasionSimulationResponse`
 
 ```ts
 interface CusumResult {
-  cusum_upper: number[];       // C+_i per sample, same length/order as single_sample_scores
+  cusum_upper: number[];       // C+_i per sample, same length/order as the detection series (sample_count - baseline_window_used long)
   cusum_lower: number[];       // C-_i per sample
   flagged: boolean;            // true if either sum ever exceeded threshold
-  flagged_at_index: number | null; // index of first crossing, else null
+  flagged_at_index: number | null; // index of first crossing within the detection series, else null
   threshold: number;           // echoes h
 }
 
@@ -559,27 +560,44 @@ interface EvasionSimulationResponse {
   biomarker: "hb" | "te_ratio";        // which biomarker `pattern` selected
   pattern: "micro_dosing" | "steroid_micro_dosing";
   sample_count: number;
-  single_sample_scores: number[];      // normalized 0-1 anomaly_score per sample, ascending by date
+  single_sample_scores: number[];      // normalized 0-1 anomaly_score per sample, ascending by date — full series, unaffected by baseline_window
   single_sample_flagged_any: boolean;  // true if any single_sample_scores entry >= 0.55 (the same "moderate" cutoff ExplanationPanel.tsx already uses)
   cusum_result: CusumResult;
   cusum_flagged: boolean;              // echoes cusum_result.flagged
+  baseline_window_used: number;        // echoes the effective baseline_window
+  detection_sample_count: number;      // sample_count - baseline_window_used; length of cusum_result's arrays
 }
 ```
 
+**Baseline computation, single-sample vs. CUSUM**: single-sample scoring
+(`single_sample_scores`) is unaffected by `baseline_window` — it always
+scores every sample against the athlete's full-history Bayesian posterior
+(`compute_current_posterior`, the same mechanism `anomaly.py` uses
+elsewhere). The CUSUM side deliberately does **not** use that posterior:
+folding in every sample (including the later ones CUSUM is trying to
+flag) would bias the baseline toward the drift being searched for. CUSUM
+instead uses a plain mean/std of just the earliest `baseline_window`
+samples — an unbiased "what did this athlete look like before" snapshot
+— and only runs against the remaining, held-out samples.
+
 **Errors**:
 - `404` — unknown `athlete_id`.
-- `422` — unsupported `pattern`, or the athlete has no valid
-  `baseline_prior_json` (posterior can't be computed).
+- `422` — unsupported `pattern`; `baseline_window < 2`; the athlete has
+  no valid `baseline_prior_json` (posterior can't be computed); the
+  athlete has fewer than `baseline_window + 3` total samples
+  ("insufficient samples for reliable baseline+detection split"); or
+  the earliest `baseline_window` samples have zero variance for the
+  target biomarker (no baseline std can be established).
 
 *No mock fixture provided — not requested for this pass.*
 
 **Known limitation, not a bug**: with the current seeded dataset (5
 samples per athlete, uniformly — see the Day 5 evaluation note), CUSUM's
-default `h=5.0` does not flag either seeded micro-dosing athlete yet; the
-cumulative sum gets close (peaks around 4.3 on `hb` for the EPO case) but
-5 samples isn't enough series length to cross threshold at the untuned
-default. This is a dataset-length finding, not a reason to lower `h` for
-this endpoint specifically.
+default `h=5.0` does not flag either seeded micro-dosing athlete yet even
+after the baseline-window fix. With the default `baseline_window=2`, only
+3 samples remain for detection, which caps how high the cumulative sum
+can climb regardless of baseline quality — this dataset's 5-samples-per-
+athlete depth is the binding constraint, not threshold tuning.
 
 ---
 

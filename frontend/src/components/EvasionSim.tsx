@@ -133,6 +133,18 @@ function EvasionSim({ athleteId }: EvasionSimProps) {
     lower: result.cusum_result.cusum_lower[index],
   }));
 
+  // Auto-scaling the y-axis to just the data range can leave the
+  // threshold reference line off-chart entirely when detection_sample_count
+  // is small (cusum sums haven't had room to climb) — the exact case this
+  // chart exists to make legible. Force the domain to always cover the
+  // threshold, with 15% headroom above it, while still expanding to fit
+  // any data that legitimately exceeds it.
+  const cusumValues = cusumData.flatMap((d) => [d.upper, d.lower]);
+  const cusumYDomain: [number, number] = [
+    Math.min(0, ...cusumValues),
+    Math.max(result.cusum_result.threshold * 1.15, ...cusumValues),
+  ];
+
   const flaggedIndex = result.cusum_result.flagged_at_index;
   const flaggedPoint =
     flaggedIndex !== null && cusumData[flaggedIndex]
@@ -193,7 +205,7 @@ function EvasionSim({ athleteId }: EvasionSimProps) {
           <LineChart data={cusumData} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="label" />
-            <YAxis />
+            <YAxis domain={cusumYDomain} />
             <Tooltip content={<CusumTooltip />} />
             <Legend />
             <ReferenceLine
@@ -239,7 +251,11 @@ function EvasionSim({ athleteId }: EvasionSimProps) {
       </div>
 
       <div className="mt-3 rounded border border-gray-300 p-3 text-sm">
-        <p>
+        <p className="text-gray-500">
+          Baseline established from first {result.baseline_window_used} samples; cumulative
+          detection run across remaining {result.detection_sample_count} samples.
+        </p>
+        <p className="mt-1">
           Single-sample detection: {flaggedCount} of {result.sample_count} samples flagged.
         </p>
         <p className="mt-1">
