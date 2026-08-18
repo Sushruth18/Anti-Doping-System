@@ -99,6 +99,8 @@ def test_simulation_evasion_epo_micro_dosing_smoke(client, db_session):
         "single_sample_flagged_any",
         "cusum_result",
         "cusum_flagged",
+        "baseline_window_used",
+        "detection_sample_count",
     }
     assert body["athlete_id"] == athlete_id
     assert body["biomarker"] == "hb"
@@ -114,8 +116,12 @@ def test_simulation_evasion_epo_micro_dosing_smoke(client, db_session):
         "threshold",
     }
     assert body["cusum_result"]["threshold"] == 5.0
-    assert len(body["cusum_result"]["cusum_upper"]) == body["sample_count"]
-    assert len(body["cusum_result"]["cusum_lower"]) == body["sample_count"]
+    # default baseline_window=2: the earliest 2 samples are held out to
+    # establish the baseline, CUSUM only runs against what's left.
+    assert body["baseline_window_used"] == 2
+    assert body["detection_sample_count"] == body["sample_count"] - 2
+    assert len(body["cusum_result"]["cusum_upper"]) == body["detection_sample_count"]
+    assert len(body["cusum_result"]["cusum_lower"]) == body["detection_sample_count"]
 
 
 def test_simulation_evasion_steroid_micro_dosing_smoke(client, db_session):
@@ -133,9 +139,41 @@ def test_simulation_evasion_steroid_micro_dosing_smoke(client, db_session):
     assert body["biomarker"] == "te_ratio"
     assert body["pattern"] == "steroid_micro_dosing"
     assert body["sample_count"] == len(body["single_sample_scores"])
+    assert body["baseline_window_used"] == 2
+    assert body["detection_sample_count"] == body["sample_count"] - 2
 
 
 def test_simulation_evasion_unknown_athlete_404(client, db_session):
     response = client.get("/simulation/evasion", params={"athlete_id": 999999})
 
     assert response.status_code == 404
+
+
+def test_simulation_evasion_insufficient_samples_for_baseline_split_422(client, db_session):
+    # Real seeded athletes have exactly 5 samples (see the Day 5 evaluation
+    # note in docs/api-contract.md). With the default baseline_window=2,
+    # that's just enough (5 >= 2+3). Asking for a larger baseline_window
+    # pushes the same athlete below the floor without needing a separate
+    # short-history fixture.
+    athlete_id = _find_seeded_athlete_id("epo")
+    _seed_athlete(db_session, athlete_id)
+
+    response = client.get(
+        "/simulation/evasion",
+        params={"athlete_id": athlete_id, "baseline_window": 3},
+    )
+
+    assert response.status_code == 422
+    assert "insufficient samples for reliable baseline+detection split" in response.json()["detail"]
+
+
+def test_simulation_evasion_baseline_window_below_two_422(client, db_session):
+    athlete_id = _find_seeded_athlete_id("epo")
+    _seed_athlete(db_session, athlete_id)
+
+    response = client.get(
+        "/simulation/evasion",
+        params={"athlete_id": athlete_id, "baseline_window": 1},
+    )
+
+    assert response.status_code == 422
