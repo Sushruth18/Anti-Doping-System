@@ -1,0 +1,152 @@
+[
+  {
+    "sport": "Cycling",
+    "biomarker": "hb",
+    "population_mean": 15.428857,
+    "population_std": 0.243707
+  },
+  {
+    "sport": "Cycling",
+    "biomarker": "hct",
+    "population_mean": 44.657286,
+    "population_std": 0.77812
+  },
+  {
+    "sport": "Cycling",
+    "biomarker": "ret_pct",
+    "population_mean": 1.075857,
+    "population_std": 0.108041
+  },
+  {
+    "sport": "Cycling",
+    "biomarker": "off_score",
+    "population_mean": 92.137143,
+    "population_std": 4.259047
+  },
+  {
+    "sport": "Cycling",
+    "biomarker": "te_ratio",
+    "population_mean": 1.140714,
+    "population_std": 0.124824
+  },
+  {
+    "sport": "Rowing",
+    "biomarker": "hb",
+    "population_mean": 15.161231,
+    "population_std": 0.152593
+  },
+  {
+    "sport": "Rowing",
+    "biomarker": "hct",
+    "population_mean": 45.175231,
+    "population_std": 1.101666
+  },
+  {
+    "sport": "Rowing",
+    "biomarker": "ret_pct",
+    "population_mean": 0.998308,
+    "population_std": 0.120545
+  },
+  {
+    "sport": "Rowing",
+    "biomarker": "off_score",
+    "population_mean": 91.761538,
+    "population_std": 3.490545
+  },
+  {
+    "sport": "Rowing",
+    "biomarker": "te_ratio",
+    "population_mean": 1.109692,
+    "population_std": 0.107259
+  },
+  {
+    "sport": "Running",
+    "biomarker": "hb",
+    "population_mean": 14.724462,
+    "population_std": 0.374108
+  },
+  {
+    "sport": "Running",
+    "biomarker": "hct",
+    "population_mean": 43.194462,
+    "population_std": 1.128287
+  },
+  {
+    "sport": "Running",
+    "biomarker": "ret_pct",
+    "population_mean": 1.118,
+    "population_std": 0.183548
+  },
+  {
+    "sport": "Running",
+    "biomarker": "off_score",
+    "population_mean": 84.027692,
+    "population_std": 5.495691
+  },
+  {
+    "sport": "Running",
+    "biomarker": "te_ratio",
+    "population_mean": 1.090615,
+    "population_std": 0.113975
+  },
+  {
+    "sport": "Swimming",
+    "biomarker": "hb",
+    "population_mean": 14.566833,
+    "population_std": 0.388838
+  },
+  {
+    "sport": "Swimming",
+    "biomarker": "hct",
+    "population_mean": 43.205333,
+    "population_std": 1.411856
+  },
+  {
+    "sport": "Swimming",
+    "biomarker": "ret_pct",
+    "population_mean": 1.062167,
+    "population_std": 0.155618
+  },
+  {
+    "sport": "Swimming",
+    "biomarker": "off_score",
+    "population_mean": 84.005,
+    "population_std": 4.638262
+  },
+  {
+    "sport": "Swimming",
+    "biomarker": "te_ratio",
+    "population_mean": 1.063333,
+    "population_std": 0.107729
+  },
+  {
+    "sport": "Triathlon",
+    "biomarker": "hb",
+    "population_mean": 14.892154,
+    "population_std": 0.306546
+  },
+  {
+    "sport": "Triathlon",
+    "biomarker": "hct",
+    "population_mean": 44.424308,
+    "population_std": 1.014151
+  },
+  {
+    "sport": "Triathlon",
+    "biomarker": "ret_pct",
+    "population_mean": 1.101077,
+    "population_std": 0.158397
+  },
+  {
+    "sport": "Triathlon",
+    "biomarker": "off_score",
+    "population_mean": 86.12,
+    "population_std": 5.695591
+  },
+  {
+    "sport": "Triathlon",
+    "biomarker": "te_ratio",
+    "population_mean": 1.109231,
+    "population_std": 0.094825
+  }
+]

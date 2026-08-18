@@ -36,13 +36,13 @@
   },
   {
     "athlete_id": 8,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "transfusion"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 9,
-    "is_synthetic_anomaly": false,
-    "pattern_type": null
+    "is_synthetic_anomaly": true,
+    "pattern_type": "transfusion"
   },
   {
     "athlete_id": 10,
@@ -87,12 +87,12 @@
   {
     "athlete_id": 18,
     "is_synthetic_anomaly": true,
-    "pattern_type": "transfusion"
+    "pattern_type": "steroid"
   },
   {
     "athlete_id": 19,
     "is_synthetic_anomaly": true,
-    "pattern_type": "epo"
+    "pattern_type": "steroid"
   },
   {
     "athlete_id": 20,
@@ -111,8 +111,8 @@
   },
   {
     "athlete_id": 23,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "steroid"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 24,
@@ -136,8 +136,8 @@
   },
   {
     "athlete_id": 28,
-    "is_synthetic_anomaly": false,
-    "pattern_type": null
+    "is_synthetic_anomaly": true,
+    "pattern_type": "epo"
   },
   {
     "athlete_id": 29,
@@ -146,18 +146,18 @@
   },
   {
     "athlete_id": 30,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "transfusion"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 31,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "epo"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 32,
-    "is_synthetic_anomaly": false,
-    "pattern_type": null
+    "is_synthetic_anomaly": true,
+    "pattern_type": "steroid"
   },
   {
     "athlete_id": 33,
@@ -166,13 +166,13 @@
   },
   {
     "athlete_id": 34,
-    "is_synthetic_anomaly": false,
-    "pattern_type": null
+    "is_synthetic_anomaly": true,
+    "pattern_type": "steroid"
   },
   {
     "athlete_id": 35,
-    "is_synthetic_anomaly": false,
-    "pattern_type": null
+    "is_synthetic_anomaly": true,
+    "pattern_type": "transfusion"
   },
   {
     "athlete_id": 36,
@@ -186,13 +186,13 @@
   },
   {
     "athlete_id": 38,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "transfusion"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 39,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "epo"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 40,
@@ -201,13 +201,13 @@
   },
   {
     "athlete_id": 41,
-    "is_synthetic_anomaly": false,
-    "pattern_type": null
+    "is_synthetic_anomaly": true,
+    "pattern_type": "epo"
   },
   {
     "athlete_id": 42,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "epo"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 43,
@@ -251,13 +251,13 @@
   },
   {
     "athlete_id": 51,
-    "is_synthetic_anomaly": false,
-    "pattern_type": null
+    "is_synthetic_anomaly": true,
+    "pattern_type": "epo"
   },
   {
     "athlete_id": 52,
-    "is_synthetic_anomaly": false,
-    "pattern_type": null
+    "is_synthetic_anomaly": true,
+    "pattern_type": "transfusion"
   },
   {
     "athlete_id": 53,
@@ -271,8 +271,8 @@
   },
   {
     "athlete_id": 55,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "steroid"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 56,
@@ -291,8 +291,8 @@
   },
   {
     "athlete_id": 59,
-    "is_synthetic_anomaly": false,
-    "pattern_type": null
+    "is_synthetic_anomaly": true,
+    "pattern_type": "epo"
   },
   {
     "athlete_id": 60,
@@ -317,12 +317,12 @@
   {
     "athlete_id": 64,
     "is_synthetic_anomaly": true,
-    "pattern_type": "steroid"
+    "pattern_type": "epo"
   },
   {
     "athlete_id": 65,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "transfusion"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 66,
@@ -331,8 +331,8 @@
   },
   {
     "athlete_id": 67,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "epo"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 68,
@@ -361,8 +361,8 @@
   },
   {
     "athlete_id": 73,
-    "is_synthetic_anomaly": false,
-    "pattern_type": null
+    "is_synthetic_anomaly": true,
+    "pattern_type": "transfusion"
   },
   {
     "athlete_id": 74,
@@ -376,8 +376,8 @@
   },
   {
     "athlete_id": 76,
-    "is_synthetic_anomaly": true,
-    "pattern_type": "steroid"
+    "is_synthetic_anomaly": false,
+    "pattern_type": null
   },
   {
     "athlete_id": 77,

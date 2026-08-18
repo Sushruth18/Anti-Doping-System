@@ -1,4 +1,6 @@
-"""Synthetic data generator — v1.2: v1 + transfusion, epo, steroid anomaly archetypes."""
+"""Synthetic data generator — v1.3: variable sample counts per athlete (8-20 overall,
+15-20 biased for EPO/steroid); all biomarker correlation and archetype injection logic
+unchanged from v1.2."""
 
 from __future__ import annotations
 
@@ -18,7 +20,12 @@ CONFIG = {
     "n_athletes": 80,
     "n_sports": 5,
     "seed": 42,
-    "n_samples_per_athlete": 5,
+    # v1.3: variable sample counts — draw from [n_samples_min, n_samples_max].
+    # EPO and steroid athletes are drawn from [n_samples_drift_min, n_samples_max]
+    # to give subtle drift patterns a longer runway to be detectable.
+    "n_samples_min": 8,
+    "n_samples_max": 20,
+    "n_samples_drift_min": 15,   # lower bound for epo / steroid archetypes
     "samples_start_date": "2025-01-15",
     "sample_interval_days": 28,
     # AR(1) increment: epsilon_t = rho * epsilon_{t-1} + N(0, step_std)
@@ -28,7 +35,7 @@ CONFIG = {
     "ret_pct_step_std": 0.04,
     "te_ratio_step_std": 0.03,
     "hb_hct_coupling": 2.85,
-    # v1.2 anomaly injection
+    # v1.2 anomaly injection (unchanged)
     "anomaly_rate": 0.06,
     "anomaly_archetypes": ["transfusion", "epo", "steroid"],
 
@@ -247,18 +254,46 @@ def generate_athletes(rng: Random) -> list[dict]:
     return athletes
 
 
-def generate_samples(rng: Random, athletes: list[dict]) -> list[dict]:
+def assign_sample_counts(
+    rng: Random,
+    athletes: list[dict],
+    epo_ids: set[int],
+    steroid_ids: set[int],
+) -> dict[int, int]:
+    """Draw a sample count for each athlete.
+
+    EPO and steroid athletes draw from [n_samples_drift_min, n_samples_max]
+    to give their gradual drift patterns a longer runway.
+    Clean athletes and transfusion athletes draw from the full
+    [n_samples_min, n_samples_max] range — transfusion is a sharp
+    spike pattern and does not need extra length.
+    """
+    counts: dict[int, int] = {}
+    for athlete in athletes:
+        aid = athlete["id"]
+        if aid in epo_ids or aid in steroid_ids:
+            n = rng.randint(CONFIG["n_samples_drift_min"], CONFIG["n_samples_max"])
+        else:
+            n = rng.randint(CONFIG["n_samples_min"], CONFIG["n_samples_max"])
+        counts[aid] = n
+    return counts
+
+
+def generate_samples(
+    rng: Random,
+    athletes: list[dict],
+    sample_counts: dict[int, int],
+) -> list[dict]:
     samples: list[dict] = []
     sample_id = 1
     start = date.fromisoformat(CONFIG["samples_start_date"])
     interval = timedelta(days=CONFIG["sample_interval_days"])
 
     for athlete in athletes:
-        walks = correlated_biomarker_walks(
-            rng, CONFIG["n_samples_per_athlete"], athlete["sport"]
-        )
+        n = sample_counts[athlete["id"]]
+        walks = correlated_biomarker_walks(rng, n, athlete["sport"])
 
-        for step in range(CONFIG["n_samples_per_athlete"]):
+        for step in range(n):
             hb = walks["hb"][step]
             ret_pct = walks["ret_pct"][step]
             sample_date = start + (interval * step)
@@ -291,32 +326,37 @@ def select_anomaly_athletes(rng: Random, athlete_ids: list[int]) -> list[int]:
     return sorted(rng.sample(athlete_ids, n_anomaly))
 
 
+def _build_by_athlete(samples: list[dict]) -> dict[int, list[dict]]:
+    """Group and sort samples by athlete_id."""
+    by_athlete: dict[int, list[dict]] = {}
+    for sample in samples:
+        by_athlete.setdefault(sample["athlete_id"], []).append(sample)
+    for rows in by_athlete.values():
+        rows.sort(key=lambda s: s["date"])
+    return by_athlete
+
+
 def inject_transfusion_anomalies(
     rng: Random,
     samples: list[dict],
+    affected: list[int],
 ) -> list[int]:
     """Blood-transfusion archetype: sharp hb/hct rise + ret_pct suppression.
 
     te_ratio is left unchanged (transfusion does not directly elevate T/E;
     steroid/EPO archetypes may touch te_ratio in later tasks).
 
-    Returns affected athlete IDs (in-memory only — no ground_truth.json yet).
+    Returns affected athlete IDs.
     """
-    if CONFIG["anomaly_rate"] <= 0:
+    if not affected:
         return []
 
-    by_athlete: dict[int, list[dict]] = {}
-    for sample in samples:
-        by_athlete.setdefault(sample["athlete_id"], []).append(sample)
-    for rows in by_athlete.values():
-        rows.sort(key=lambda s: s["date"])
-
-    affected = select_anomaly_athletes(rng, list(by_athlete.keys()))
+    by_athlete = _build_by_athlete(samples)
     window_len = CONFIG["transfusion_window_len"]
-    n_steps = CONFIG["n_samples_per_athlete"]
 
     for athlete_id in affected:
         rows = by_athlete[athlete_id]
+        n_steps = len(rows)   # use actual per-athlete count
         # Window starts after at least one baseline sample; fits within series
         max_start = n_steps - window_len
         start_idx = rng.randint(1, max(1, max_start))
@@ -344,22 +384,16 @@ def inject_transfusion_anomalies(
 def inject_epo_anomalies(
     rng: Random,
     samples: list[dict],
+    affected: list[int],
 ) -> list[int]:
     """EPO micro-dosing archetype: subtle Hb/HCT/reticulocyte/T-E changes."""
 
-    by_athlete: dict[int, list[dict]] = {}
-    for sample in samples:
-        by_athlete.setdefault(sample["athlete_id"], []).append(sample)
-
-    for rows in by_athlete.values():
-        rows.sort(key=lambda s: s["date"])
-
-    affected = select_anomaly_athletes(rng, list(by_athlete.keys()))
+    by_athlete = _build_by_athlete(samples)
     window_len = CONFIG["epo_window_len"]
-    n_steps = CONFIG["n_samples_per_athlete"]
 
     for athlete_id in affected:
         rows = by_athlete[athlete_id]
+        n_steps = len(rows)   # use actual per-athlete count
 
         max_start = n_steps - window_len
         start_idx = rng.randint(1, max(1, max_start))
@@ -402,28 +436,27 @@ def inject_epo_anomalies(
                 2,
             )
 
+            row["off_score"] = round(
+                compute_off_score(row["hb"], row["ret_pct"]),
+                1,
+            )
+
     return affected
 
 
 def inject_steroid_anomalies(
     rng: Random,
     samples: list[dict],
+    affected: list[int],
 ) -> list[int]:
     """Steroid micro-dosing archetype: subtle T/E ratio elevation."""
 
-    by_athlete: dict[int, list[dict]] = {}
-    for sample in samples:
-        by_athlete.setdefault(sample["athlete_id"], []).append(sample)
-
-    for rows in by_athlete.values():
-        rows.sort(key=lambda s: s["date"])
-
-    affected = select_anomaly_athletes(rng, list(by_athlete.keys()))
+    by_athlete = _build_by_athlete(samples)
     window_len = CONFIG["steroid_window_len"]
-    n_steps = CONFIG["n_samples_per_athlete"]
 
     for athlete_id in affected:
         rows = by_athlete[athlete_id]
+        n_steps = len(rows)   # use actual per-athlete count
 
         max_start = n_steps - window_len
         start_idx = rng.randint(1, max(1, max_start))
@@ -470,22 +503,37 @@ def inject_steroid_anomalies(
 
 def write_ground_truth(
     path: Path,
+    athletes: list[dict],
     transfusion_ids: list[int],
     epo_ids: list[int],
     steroid_ids: list[int],
 ) -> None:
-    """Write anomaly labels for validation/evaluation."""
+    """Write per-athlete anomaly labels matching the schema.md ground_truth shape:
+    [{athlete_id, is_synthetic_anomaly, pattern_type}] — one row per athlete.
+    """
+    anomaly_map: dict[int, str] = {}
+    for aid in transfusion_ids:
+        anomaly_map[aid] = "transfusion"
+    for aid in epo_ids:
+        anomaly_map[aid] = "epo"
+    for aid in steroid_ids:
+        anomaly_map[aid] = "steroid"
 
-    ground_truth = {
-        "transfusion": sorted(transfusion_ids),
-        "epo": sorted(epo_ids),
-        "steroid": sorted(steroid_ids),
-    }
+    rows = []
+    for athlete in athletes:
+        aid = athlete["id"]
+        is_anomaly = aid in anomaly_map
+        rows.append(
+            {
+                "athlete_id": aid,
+                "is_synthetic_anomaly": is_anomaly,
+                "pattern_type": anomaly_map.get(aid),  # None for clean athletes
+            }
+        )
 
     path.parent.mkdir(parents=True, exist_ok=True)
-
     with path.open("w", encoding="utf-8") as f:
-        json.dump(ground_truth, f, indent=2)
+        json.dump(rows, f, indent=2)
         f.write("\n")
 
 
@@ -709,18 +757,107 @@ def write_json(path: Path, data: list[dict]) -> None:
         f.write("\n")
 
 
-def main() -> None:
+def print_sample_count_summary(
+    sample_counts: dict[int, int],
+    transfusion_ids: list[int],
+    epo_ids: list[int],
+    steroid_ids: list[int],
+) -> None:
+    """Print per-archetype sample-count distribution for pre-commit review."""
+    import statistics
+
+    label_map: dict[int, str] = {}
+    for aid in transfusion_ids:
+        label_map[aid] = "transfusion"
+    for aid in epo_ids:
+        label_map[aid] = "epo"
+    for aid in steroid_ids:
+        label_map[aid] = "steroid"
+
+    groups: dict[str, list[int]] = {
+        "clean":        [],
+        "transfusion":  [],
+        "epo":          [],
+        "steroid":      [],
+    }
+    for aid, n in sample_counts.items():
+        groups[label_map.get(aid, "clean")].append(n)
+
+    all_counts = list(sample_counts.values())
+    print()
+    print("=" * 60)
+    print("SAMPLE COUNT DISTRIBUTION SUMMARY (v1.3)")
+    print("=" * 60)
+    print(f"{'Group':<16} {'n_athletes':>10} {'min':>5} {'max':>5} {'median':>7}")
+    print("-" * 60)
+    for group, counts in groups.items():
+        if not counts:
+            continue
+        med = statistics.median(counts)
+        print(f"{group:<16} {len(counts):>10} {min(counts):>5} {max(counts):>5} {med:>7.1f}")
+    print("-" * 60)
+    med_all = statistics.median(all_counts)
+    print(f"{'ALL':<16} {len(all_counts):>10} {min(all_counts):>5} {max(all_counts):>5} {med_all:>7.1f}")
+    print()
+    print("Per-athlete counts:")
+    for group, counts in groups.items():
+        if not counts:
+            continue
+        print(f"  {group}: {sorted(counts)}")
+    print("=" * 60)
+    print()
+
+
+def main(write_files: bool = True) -> None:
+    """Generate dataset.
+
+    Args:
+        write_files: If False, runs the full pipeline and prints the
+            sample-count summary but does NOT write athletes.json,
+            samples.json, or ground_truth.json.  Use this to review
+            the distribution before committing.
+    """
     rng = Random(CONFIG["seed"])
 
     athletes = generate_athletes(rng)
-    samples = generate_samples(rng, athletes)
-    transfusion_ids = inject_transfusion_anomalies(rng, samples)
-    epo_ids = inject_epo_anomalies(rng, samples)
-    steroid_ids = inject_steroid_anomalies(rng, samples)
 
-    affected_ids = sorted(
-        set(transfusion_ids + epo_ids + steroid_ids)
+    # --- Anomaly athlete selection must happen BEFORE sample generation
+    # so we can bias sample counts for epo/steroid athletes. ---
+    # We do a dry-run selection using a cloned rng state so the
+    # actual anomaly selection later (which consumes rng) is identical.
+    from copy import deepcopy
+    rng_clone = deepcopy(rng)
+    # --- Select anomaly athletes ONCE, before any sample generation. ---
+    # All three draws happen here in sequence, consuming rng in a fixed order,
+    # so the same IDs are used for both sample-count biasing and actual injection.
+    athlete_ids = [a["id"] for a in athletes]
+    transfusion_ids = select_anomaly_athletes(rng, athlete_ids)
+    epo_ids         = select_anomaly_athletes(rng, athlete_ids)
+    steroid_ids     = select_anomaly_athletes(rng, athlete_ids)
+
+    # Assign sample counts — epo/steroid get the biased high-end range
+    sample_counts = assign_sample_counts(
+        rng,
+        athletes,
+        epo_ids=set(epo_ids),
+        steroid_ids=set(steroid_ids),
     )
+
+    # --- Print distribution summary ---
+    print_sample_count_summary(sample_counts, transfusion_ids, epo_ids, steroid_ids)
+
+    if not write_files:
+        print("[DRY RUN] write_files=False — no data files written.")
+        return
+
+    samples = generate_samples(rng, athletes, sample_counts)
+
+    # Inject anomalies using the pre-selected IDs (no second rng draw for selection)
+    inject_transfusion_anomalies(rng, samples, transfusion_ids)
+    inject_epo_anomalies(rng, samples, epo_ids)
+    inject_steroid_anomalies(rng, samples, steroid_ids)
+
+    affected_ids = sorted(set(transfusion_ids + epo_ids + steroid_ids))
 
     for sample in samples:
         sample["off_score"] = round(
@@ -730,6 +867,7 @@ def main() -> None:
 
     write_ground_truth(
         GROUND_TRUTH_PATH,
+        athletes,
         transfusion_ids,
         epo_ids,
         steroid_ids,
@@ -744,7 +882,7 @@ def main() -> None:
     print(f"Wrote {len(samples)} samples -> {samples_path}")
     print(f"Ground truth -> {GROUND_TRUTH_PATH}")
     print(
-        f"Sports: {', '.join(f'{s}={sum(1 for a in athletes if a['sport']==s)}' for s in SPORTS)}"
+        "Sports: " + ", ".join(f"{s}={sum(1 for a in athletes if a['sport'] == s)}" for s in SPORTS)
     )
     print(
         f"Anomalies injected:"
@@ -759,7 +897,7 @@ def main() -> None:
         print(f"Anomaly plot -> {ANOMALY_PLOT_PATH}")
 
         # Spot-check off_score on first affected athlete's window samples
-        by_aid = {}
+        by_aid: dict[int, list[dict]] = {}
         for s in samples:
             by_aid.setdefault(s["athlete_id"], []).append(s)
         aid = affected_ids[0]
