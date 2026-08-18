@@ -523,48 +523,63 @@ no events yet, returns `200` with `events: []`.
 
 ### `GET /simulation/evasion`
 
-Runs a **synthetic** doping-evasion simulation (not tied to any real
-athlete or the hidden `ground_truth` table) comparing single-sample
-threshold detection against CUSUM detection on a generated sample
-series.
+Runs the evasion-detection comparison against a **real seeded athlete's**
+sample series: single-sample Mahalanobis threshold detection (reusing
+`anomaly.py`'s existing scoring, unmodified) against CUSUM cumulative
+detection (`app/ml/cusum.py`, actual defaults `k=0.5, h=5.0` — not tuned
+per-request), on whichever single biomarker the requested `pattern`
+targets.
 
-> Note: the `pattern` value below (e.g. `"micro_dosing"`) selects which
-> synthetic evasion strategy to simulate. It is unrelated to, and does
-> not read from, the hidden `ground_truth.pattern_type` column — this
-> endpoint never touches real athlete data or `ground_truth` at all.
+> Note: `pattern` selects a **detection archetype** (which single
+> biomarker's drift to run CUSUM against), not a value read from the
+> hidden `ground_truth.pattern_type` column. This endpoint queries real
+> `Athlete`/`Sample` rows for `athlete_id` but never touches
+> `ground_truth` — see the warning banner at the top of this document.
 
 **Query params**
 
 | Param | Type | Required | Notes |
 |---|---|---|---|
-| `pattern` | string enum | yes | MVP supports `"micro_dosing"` only. `422` for anything else. |
+| `athlete_id` | integer | yes | `404` if unknown. |
+| `pattern` | string enum | no | `"micro_dosing"` (default) → biomarker `hb` (EPO). `"steroid_micro_dosing"` → biomarker `te_ratio`. `422` for anything else. |
 
 **Response `200`** — `EvasionSimulationResponse`
 
 ```ts
-interface SimulatedSamplePoint {
-  day: number;         // synthetic day index, 0-based
-  off_score: number;
-}
-
-interface DetectionResult {
-  method: "single_sample_threshold" | "cusum";
-  flagged_days: number[];          // day indices flagged as anomalous
-  first_detection_day: number | null;
-  detection_rate: number;          // 0–1, fraction of doping-window days correctly flagged
+interface CusumResult {
+  cusum_upper: number[];       // C+_i per sample, same length/order as single_sample_scores
+  cusum_lower: number[];       // C-_i per sample
+  flagged: boolean;            // true if either sum ever exceeded threshold
+  flagged_at_index: number | null; // index of first crossing, else null
+  threshold: number;           // echoes h
 }
 
 interface EvasionSimulationResponse {
-  pattern: string;
-  sample_series: SimulatedSamplePoint[];
-  single_sample_detection: DetectionResult;
-  cusum_detection: DetectionResult;
+  athlete_id: number;
+  biomarker: "hb" | "te_ratio";        // which biomarker `pattern` selected
+  pattern: "micro_dosing" | "steroid_micro_dosing";
+  sample_count: number;
+  single_sample_scores: number[];      // normalized 0-1 anomaly_score per sample, ascending by date
+  single_sample_flagged_any: boolean;  // true if any single_sample_scores entry >= 0.55 (the same "moderate" cutoff ExplanationPanel.tsx already uses)
+  cusum_result: CusumResult;
+  cusum_flagged: boolean;              // echoes cusum_result.flagged
 }
 ```
 
-**Errors**: `422` — unsupported `pattern`.
+**Errors**:
+- `404` — unknown `athlete_id`.
+- `422` — unsupported `pattern`, or the athlete has no valid
+  `baseline_prior_json` (posterior can't be computed).
 
 *No mock fixture provided — not requested for this pass.*
+
+**Known limitation, not a bug**: with the current seeded dataset (5
+samples per athlete, uniformly — see the Day 5 evaluation note), CUSUM's
+default `h=5.0` does not flag either seeded micro-dosing athlete yet; the
+cumulative sum gets close (peaks around 4.3 on `hb` for the EPO case) but
+5 samples isn't enough series length to cross threshold at the untuned
+default. This is a dataset-length finding, not a reason to lower `h` for
+this endpoint specifically.
 
 ---
 

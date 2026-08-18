@@ -224,24 +224,26 @@ export interface AuditTimelineResponse {
   events: AuditEvent[]; // ascending by timestamp
 }
 
-/** GET /simulation/evasion?pattern=micro_dosing */
-export interface SimulatedSamplePoint {
-  day: number;
-  off_score: number;
-}
+/** GET /simulation/evasion?athlete_id={id}&pattern=micro_dosing */
+export type EvasionPattern = "micro_dosing" | "steroid_micro_dosing";
 
-export interface DetectionResult {
-  method: "single_sample_threshold" | "cusum";
-  flagged_days: number[];
-  first_detection_day: number | null;
-  detection_rate: number; // 0-1
+export interface CusumResult {
+  cusum_upper: number[]; // C+_i per sample, same length/order as single_sample_scores
+  cusum_lower: number[]; // C-_i per sample
+  flagged: boolean;
+  flagged_at_index: number | null;
+  threshold: number; // echoes h
 }
 
 export interface EvasionSimulationResponse {
-  pattern: string;
-  sample_series: SimulatedSamplePoint[];
-  single_sample_detection: DetectionResult;
-  cusum_detection: DetectionResult;
+  athlete_id: number;
+  biomarker: "hb" | "te_ratio"; // which biomarker `pattern` selected
+  pattern: EvasionPattern;
+  sample_count: number;
+  single_sample_scores: number[]; // normalized 0-1 anomaly_score per sample, ascending by date
+  single_sample_flagged_any: boolean; // true if any entry >= 0.55, the same "moderate" cutoff ExplanationPanel.tsx uses
+  cusum_result: CusumResult;
+  cusum_flagged: boolean; // echoes cusum_result.flagged
 }
 
 // ---------------------------------------------------------------------------

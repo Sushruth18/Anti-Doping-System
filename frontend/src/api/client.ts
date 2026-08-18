@@ -4,6 +4,8 @@ import type {
   Case,
   DecisionInput,
   DecisionResponse,
+  EvasionPattern,
+  EvasionSimulationResponse,
   NewCaseInput,
   Recommendation,
   TrajectoryResponse,
@@ -41,6 +43,19 @@ export async function getAthleteRecommendation(id: number): Promise<Recommendati
     throw new Error(`GET /athletes/${id}/recommendation failed: ${response.status}`);
   }
   return response.json() as Promise<Recommendation>;
+}
+
+export async function getSimulationEvasion(
+  athleteId: number,
+  pattern?: EvasionPattern
+): Promise<EvasionSimulationResponse> {
+  const params = new URLSearchParams({ athlete_id: String(athleteId) });
+  if (pattern) params.set("pattern", pattern);
+  const response = await fetch(`${API_BASE_URL}/simulation/evasion?${params}`);
+  if (!response.ok) {
+    throw new Error(`GET /simulation/evasion failed: ${response.status}`);
+  }
+  return response.json() as Promise<EvasionSimulationResponse>;
 }
 
 export async function createCase(input: NewCaseInput): Promise<Case> {
