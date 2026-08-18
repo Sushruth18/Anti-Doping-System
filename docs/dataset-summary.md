@@ -1,5 +1,16 @@
 # Dataset Summary
 
+## Frozen dataset stats — v1.2 (Day 4)
+
+| Metric | Value |
+|---|---|
+| **Total athletes** | 80 |
+| **Total samples** | 400 (5 per athlete × 80 athletes) |
+| **Sports** | Cycling: 16, Rowing: 16, Running: 16, Swimming: 16, Triathlon: 16 |
+| **Synthetic anomalies** | 15 / 80 athletes (18.8%) |
+| **Anomaly archetypes** | transfusion: 5 (6.2%), EPO micro-dosing: 5 (6.2%), steroid micro-dosing: 5 (6.2%) |
+| **Frozen data files** | `data/athletes.json`, `data/samples.json` |
+
 ## Known limitations
 
 ### Anomaly scoring independence assumption
