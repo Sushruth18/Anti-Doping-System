@@ -313,35 +313,62 @@ frontend should not need to distinguish).
 ### `GET /recommendations/budget`
 
 Ranked, budget-constrained recommendation list across all athletes —
-"if we can only afford N cost units of testing, who do we test?"
+"if we can only afford N cost units of testing, who do we test?" Greedy
+value/cost-ratio knapsack allocation (`app/ml/budget_allocator.py`'s
+`allocate_budget`, unmodified here) over every athlete's current
+recommendation (`app/ml/action_engine.py`'s `compute_recommendation`,
+same function `GET /athletes/{id}/recommendation` uses).
 
 **Query params**
 
 | Param | Type | Required | Notes |
 |---|---|---|---|
-| `budget` | number | yes | Total cost budget available. `422` if missing or negative. |
+| `budget` | integer | yes | Total cost budget available. `422` if missing or `<= 0`. |
 
-**Response `200`** — `BudgetRecommendationsResponse`
+**Response `200`** — `BudgetAllocationResponse`
 
 ```ts
-interface BudgetRecommendationItem extends Recommendation {
-  athlete_name: string;
-  sport: string;
-  rank: number;   // 1-indexed, order of selection by value/cost
+interface BudgetSelectedItem {
+  athlete_id: number;
+  name: string;
+  action_type: RecommendationActionType;
+  value_score: number;
+  cost: number;
+  cumulative_cost_after: number; // running total of selected cost, in selection order
+  explanation_text: string;
 }
 
-interface BudgetRecommendationsResponse {
+interface BudgetAllocationResponse {
   budget: number;
-  total_cost_used: number;      // sum of cost across `selected`, <= budget
-  selected: BudgetRecommendationItem[]; // knapsack-style selection maximizing total value_score within budget
+  selected: BudgetSelectedItem[];   // knapsack-style selection by value_score/cost ratio, descending
+  total_cost: number;               // sum of cost across `selected`, <= budget
+  total_value: number;              // sum of value_score across `selected`
+  athletes_evaluated: number;       // every athlete compute_recommendation could score at all (non-null result), INCLUDING no_action
+  candidates_considered: number;    // subset of athletes_evaluated actually eligible for the budget pool (excludes no_action -- nothing to fund)
+  candidates_selected: number;      // subset of candidates_considered the budget could actually afford; == selected.length
 }
 ```
 
-*Assumption — flagged below*: selection algorithm (e.g. greedy
-value/cost ratio vs. exact knapsack) is left to the ML side; the
-contract only fixes the response shape.
+**`athletes_evaluated` vs. `candidates_considered` vs. `candidates_selected`**
+— three different denominators, easy to conflate:
+- `athletes_evaluated`: every athlete with enough sample history for
+  `compute_recommendation` to return a result at all — includes
+  `no_action`-tier athletes (nothing anomalous, but still scored).
+- `candidates_considered`: the subset of those actually offered to the
+  budget allocator — excludes `no_action` (an athlete with
+  `cost=0.0, value_score=0.0` has nothing to fund; passing it through
+  would also violate `allocate_budget`'s positive-cost precondition).
+- `candidates_selected`: the subset of `candidates_considered` the
+  budget could actually afford, in ratio-descending order. Always
+  `<= candidates_considered <= athletes_evaluated`.
 
-**Errors**: `422` — missing/invalid `budget`.
+Worked example against the real 80-athlete seeded cohort with a small
+budget: `athletes_evaluated` = 80 (every athlete has enough history to be
+scored), `candidates_considered` = 50 (30 athletes score `no_action` and
+are excluded from the budget pool, still counted as evaluated),
+`candidates_selected` <= 50 depending on `budget`.
+
+**Errors**: `422` — missing `budget` or `budget <= 0`.
 
 *No mock fixture provided — not requested for this pass.*
 
