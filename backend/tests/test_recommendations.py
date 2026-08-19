@@ -70,9 +70,9 @@ def client(seeded_db):
 @pytest.mark.parametrize(
     "athlete_id,expected_action_type,expected_value_score",
     [
-        (4, "no_action", 0.0),  # Taylor Gomez
-        (44, "increase_monitoring", 0.004805744937410108),  # Logan Rossi
-        (65, "biological_passport_review", 0.004649289376001287),  # Indigo Berg
+        (4, "biological_passport_review", 0.0014135307211768622),  # Taylor Gomez
+        (44, "target_test", 0.0019973938797114015),  # Logan Rossi
+        (65, "biological_passport_review", 0.0014098029409579807),  # Indigo Berg
     ],
 )
 def test_get_recommendation_matches_compute_recommendation_and_contract_shape(

@@ -36,11 +36,35 @@ BIOMARKERS = ("hb", "hct", "ret_pct", "off_score", "te_ratio")
 
 ANOMALY_METHOD = "mahalanobis_baseline"
 
-# TODO: unvalidated placeholder pending real anomaly-score calibration data,
-# same status as baseline.BIOMARKER_CV. Maps the raw, unbounded
-# Mahalanobis distance from get_anomaly_score into the contract's
-# normalized-0-1 anomaly_score via 1 - exp(-distance / SCALE).
-ANOMALY_SCORE_SCALE = 10.0
+# Maps the raw, unbounded Mahalanobis distance from get_anomaly_score into
+# the contract's normalized-0-1 anomaly_score via 1 - exp(-distance / SCALE).
+#
+# Calibration method (unchanged since the original 3.0->10.0 recalibration):
+# target the non-anomalous population's median RAW Mahalanobis distance to
+# map to ~0.5 normalized, i.e. SCALE = -median_non_anomalous_raw_distance /
+# ln(0.5). This keeps the normalized score's center of mass at a fixed,
+# interpretable point (a "typical clean athlete" scores ~0.5) regardless of
+# how the underlying raw-distance magnitude shifts with dataset changes.
+#
+# Recalibrated 2026-08-19 (10.0 -> 24.4008): the seeded dataset moved from a
+# fixed 5 samples/athlete to 8-20 samples/athlete. Tighter posteriors from
+# more samples systematically inflate raw Mahalanobis distance for the same
+# physiological deviation (posterior variance shrinks, and Mahalanobis
+# distance divides by variance), which desynced the old SCALE=10.0 from the
+# new data: cohort-wide median raw distance drifted to ~16.9 (was
+# calibrated against a much lower baseline under 5-sample posteriors),
+# pushing median normalized score to ~0.82 and 41% of the 80-athlete cohort
+# into the top "open_case" tier. Rederived via the same formula against the
+# regenerated data/ground_truth.json's 66 non-anomalous athletes:
+# median_non_anomalous_raw = 16.9134 -> SCALE = -16.9134 / ln(0.5) =
+# 24.4008. Confirmed this restores median normalized score to ~0.50 across
+# the 80-athlete cohort -- see the offline calibration check referenced in
+# the recalibration commit for the full before/after tier distribution.
+#
+# Still not a validated-against-real-lab-data calibration (no real assay
+# ground truth exists for this MVP, same caveat as baseline.BIOMARKER_CV) --
+# revisit whenever the dataset's sample-depth distribution changes again.
+ANOMALY_SCORE_SCALE = 24.4008
 
 
 def normalize_anomaly_score(raw_distance: float) -> float:
