@@ -16,6 +16,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path aliases — `paths` without `baseUrl`: TS 4.4+ resolves these
+       relative to this file's own directory. `baseUrl` is deprecated in
+       TS 6 (TS5101) and removed in TS 7. */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
