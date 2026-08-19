@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { BlurFade } from "@/components/ui/blur-fade";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAthleteAnomalies, getAthleteRecommendation, getAthleteTrajectory } from "../api/client";
 import AuditTimeline from "../components/AuditTimeline";
 import DecisionPanel from "../components/DecisionPanel";
@@ -13,6 +17,19 @@ import type {
   Recommendation,
   TrajectoryResponse,
 } from "../types/api";
+
+// Shared by every inline "still loading this section" indicator on this page.
+// Not swapped for Skeleton here — that's a bigger information-architecture
+// change than this step's "wrap in Card, convert to Tabs" scope covers, so
+// this keeps the exact prior spinner mechanism and only retokens its colors.
+function SectionSpinner({ label }: { label: string }) {
+  return (
+    <div className="flex items-center justify-center gap-3 py-8">
+      <div className="h-6 w-6 animate-spin rounded-full border-4 border-muted border-t-primary" />
+      <span className="text-sm text-muted-foreground">{label}</span>
+    </div>
+  );
+}
 
 function AthleteProfile() {
   const { id } = useParams<{ id: string }>();
@@ -65,7 +82,7 @@ function AthleteProfile() {
   const backLink = (
     <Link
       to="/"
-      className="inline-flex w-fit items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
+      className="inline-flex w-fit items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
     >
       ← Back to Dashboard
     </Link>
@@ -73,13 +90,15 @@ function AthleteProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 px-4 py-8">
+      <div className="min-h-screen bg-background px-4 py-8">
         <div className="mx-auto flex max-w-4xl flex-col gap-4">
           {backLink}
-          <div className="flex items-center justify-center gap-3 rounded-lg bg-white p-12 shadow-sm">
-            <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-gray-600" />
-            <span className="text-sm text-gray-500">Loading athlete data…</span>
-          </div>
+          <Card>
+            <CardContent className="flex items-center justify-center gap-3 py-12">
+              <div className="h-6 w-6 animate-spin rounded-full border-4 border-muted border-t-primary" />
+              <span className="text-sm text-muted-foreground">Loading athlete data…</span>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -87,12 +106,16 @@ function AthleteProfile() {
 
   if (error || !trajectory) {
     return (
-      <div className="min-h-screen bg-gray-50 px-4 py-8">
+      <div className="min-h-screen bg-background px-4 py-8">
         <div className="mx-auto flex max-w-4xl flex-col gap-4">
           {backLink}
-          <div className="rounded-lg bg-white p-8 text-center shadow-sm">
-            <p className="text-sm font-medium text-red-600">Unable to load athlete data</p>
-          </div>
+          <Card>
+            <CardContent>
+              <Alert variant="destructive">
+                <AlertTitle>Unable to load athlete data</AlertTitle>
+              </Alert>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -102,78 +125,84 @@ function AthleteProfile() {
   const selected = series.find((s) => s.biomarker === selectedBiomarker) ?? series[0];
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-8">
+    <div className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto flex max-w-4xl flex-col gap-4">
         {backLink}
 
-        <h1 className="text-2xl font-bold text-gray-900">Athlete {trajectory.athlete_id}</h1>
+        <h1 className="text-2xl font-bold text-foreground">Athlete {trajectory.athlete_id}</h1>
 
-        <div className="rounded-lg bg-white p-4 shadow-sm">
-          <div className="flex flex-wrap gap-2">
-            {series.map((s) => (
-              <button
-                key={s.biomarker}
-                onClick={() => setSelectedBiomarker(s.biomarker)}
-                disabled={s.biomarker === selected?.biomarker}
-                className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-200 disabled:bg-gray-900 disabled:text-white disabled:hover:bg-gray-900"
+        <BlurFade>
+          <Card>
+            <CardContent>
+              <Tabs
+                value={selected?.biomarker ?? ""}
+                onValueChange={(value) => setSelectedBiomarker(value as string)}
               >
-                {s.biomarker}
-              </button>
-            ))}
-          </div>
+                <TabsList>
+                  {series.map((s) => (
+                    <TabsTrigger key={s.biomarker} value={s.biomarker}>
+                      {s.biomarker}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
 
-          {selected && (
-            <div className="mt-4 overflow-x-auto">
-              <TrajectoryChart points={selected.points} />
-            </div>
-          )}
-        </div>
+              {selected && (
+                <div className="mt-4 overflow-x-auto">
+                  <TrajectoryChart points={selected.points} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </BlurFade>
 
-        <div className="rounded-lg bg-white p-4 shadow-sm">
-          {anomaliesLoading && (
-            <div className="flex items-center justify-center gap-3 py-8">
-              <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-gray-600" />
-              <span className="text-sm text-gray-500">Loading anomaly history…</span>
-            </div>
-          )}
-          {!anomaliesLoading && anomaliesError && (
-            <p className="py-4 text-center text-sm font-medium text-red-600">
-              Unable to load athlete data
-            </p>
-          )}
-          {!anomaliesLoading && !anomaliesError && anomalies && (
-            <ExplanationPanel anomalies={anomalies} />
-          )}
-        </div>
+        <Card>
+          <CardContent>
+            {anomaliesLoading && <SectionSpinner label="Loading anomaly history…" />}
+            {!anomaliesLoading && anomaliesError && (
+              <Alert variant="destructive">
+                <AlertTitle>Unable to load athlete data</AlertTitle>
+              </Alert>
+            )}
+            {!anomaliesLoading && !anomaliesError && anomalies && (
+              <ExplanationPanel anomalies={anomalies} />
+            )}
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg bg-white p-4 shadow-sm">
+        <BlurFade>
           <EvasionSim athleteId={Number(id)} />
-        </div>
+        </BlurFade>
 
-        <div className="rounded-lg bg-white p-4 shadow-sm">
-          {recommendationLoading && (
-            <div className="flex items-center justify-center gap-3 py-8">
-              <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-gray-600" />
-              <span className="text-sm text-gray-500">Loading recommendation…</span>
-            </div>
-          )}
-          {!recommendationLoading && recommendationError && (
-            <p className="py-4 text-center text-sm font-medium text-red-600">
-              Unable to load athlete data
-            </p>
-          )}
-          {!recommendationLoading && !recommendationError && recommendation && (
+        {recommendationLoading && (
+          <Card>
+            <CardContent>
+              <SectionSpinner label="Loading recommendation…" />
+            </CardContent>
+          </Card>
+        )}
+        {!recommendationLoading && recommendationError && (
+          <Card>
+            <CardContent>
+              <Alert variant="destructive">
+                <AlertTitle>Unable to load athlete data</AlertTitle>
+              </Alert>
+            </CardContent>
+          </Card>
+        )}
+        {!recommendationLoading && !recommendationError && recommendation && (
+          <BlurFade>
             <RecommendationPanel recommendation={recommendation} />
-          )}
-        </div>
+          </BlurFade>
+        )}
 
-        <div className="rounded-lg bg-white p-4 shadow-sm">
+        <BlurFade>
           <DecisionPanel athleteId={Number(id)} />
-        </div>
+        </BlurFade>
 
-        <div className="rounded-lg bg-white p-4 shadow-sm">
+        <BlurFade>
           <AuditTimeline athleteId={Number(id)} />
-        </div>
+        </BlurFade>
       </div>
     </div>
   );
