@@ -35,7 +35,7 @@ function TrajectoryTooltip({
   const point = payload[0].payload;
 
   return (
-    <div className="rounded border border-gray-300 bg-white px-3 py-2 text-sm shadow">
+    <div className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground shadow">
       <div className="font-medium">{point.date}</div>
       <div className="text-red-600">Observed: {point.observed}</div>
       <div className="text-indigo-600">Expected: {point.expected}</div>
@@ -78,7 +78,7 @@ function TrajectoryChart({ points }: TrajectoryChartProps) {
           dataKey="ci_range"
           stackId="ci-band"
           stroke="none"
-          fill="#8884d8"
+          fill="#1D4ED8"
           fillOpacity={0.2}
           isAnimationActive={false}
           name="95% CI band"
@@ -87,14 +87,14 @@ function TrajectoryChart({ points }: TrajectoryChartProps) {
 
         <Line
           dataKey="expected"
-          stroke="#6366f1"
+          stroke="#1D4ED8"
           strokeWidth={2}
           dot={false}
           isAnimationActive={false}
           name="Expected (baseline)"
         />
 
-        <Scatter dataKey="observed" fill="#dc2626" name="Observed" />
+        <Scatter dataKey="observed" fill="#B91C1C" name="Observed" />
       </ComposedChart>
     </ResponsiveContainer>
   );

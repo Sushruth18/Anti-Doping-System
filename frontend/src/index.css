@@ -1,1 +1,192 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Self-hosted faces — bundled by Vite, no Google Fonts / third-party
+   runtime request. Inter (variable) is the display/UI face; IBM Plex Mono
+   carries numeric and biomarker data. Only the two mono weights actually
+   used are imported, rather than the full 100-700 range. */
+@import "@fontsource-variable/inter";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, 'Cascadia Mono', Menlo, monospace;
+
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    /* Not shadcn primitives — anti-doping triage needs a severity ramp that
+       `destructive` alone can't express (warn vs. critical vs. cleared).
+       Exposed here so `bg-warning` / `text-success` resolve as utilities. */
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+
+    /* 8px base. Subtractive/additive steps rather than the preset's
+       multipliers, so every step lands on a whole pixel. */
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-2xl: calc(var(--radius) + 8px);
+    --radius-3xl: calc(var(--radius) + 16px);
+    --radius-4xl: calc(var(--radius) + 24px);
+}
+
+:root {
+    --radius: 0.5rem;
+
+    /* Core palette */
+    --background: #F8FAFC;          /* surface */
+    --foreground: #0F172A;          /* ink */
+    --card: #FFFFFF;
+    --card-foreground: #0F172A;
+    --popover: #FFFFFF;
+    --popover-foreground: #0F172A;
+
+    --primary: #1D4ED8;
+    --primary-foreground: #FFFFFF;
+
+    --destructive: #B91C1C;         /* critical */
+    --destructive-foreground: #FFFFFF;
+    --warning: #B45309;
+    --warning-foreground: #FFFFFF;
+    --success: #15803D;
+    --success-foreground: #FFFFFF;
+
+    --border: #CBD5E1;
+    --input: #CBD5E1;
+    --ring: #1D4ED8;
+
+    /* Derived neutrals — not in the approved 8, filled from the same
+       slate ramp as --ink/--surface/--border to stay in family. */
+    --secondary: #E2E8F0;
+    --secondary-foreground: #0F172A;
+    --muted: #F1F5F9;
+    --muted-foreground: #64748B;
+    --accent: #F1F5F9;
+    --accent-foreground: #0F172A;
+
+    /* Chart series. Currently unread: every Recharts series in
+       TrajectoryChart.tsx / EvasionSim.tsx still passes literal hex props,
+       and this pass does not touch component files. Defined so the ramp
+       exists when those literals are swapped later. */
+    --chart-1: #1D4ED8;
+    --chart-2: #B91C1C;
+    --chart-3: #B45309;
+    --chart-4: #15803D;
+    --chart-5: #64748B;
+
+    /* Unused: the app has no sidebar (App.tsx routes render pages
+       directly). Kept so shadcn components referencing them never resolve
+       to an empty value; mirrors the core palette. */
+    --sidebar: #FFFFFF;
+    --sidebar-foreground: #0F172A;
+    --sidebar-primary: #1D4ED8;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #F1F5F9;
+    --sidebar-accent-foreground: #0F172A;
+    --sidebar-border: #CBD5E1;
+    --sidebar-ring: #1D4ED8;
+}
+
+/* Dark mode: real values, not placeholders — inverts onto the same slate
+   ramp, with the semantic accents lightened so they clear AA on a dark
+   ground. Nothing in the app currently adds the `.dark` class, so this is
+   unreachable until a toggle is built.
+
+   NOT QA'd: these values were contrast-checked numerically but have never
+   been rendered in a browser, because nothing can currently toggle them.
+   Treat them as a reasonable starting point, not a verified dark theme —
+   review visually before shipping any dark-mode switch. */
+.dark {
+    --background: #0F172A;
+    --foreground: #F8FAFC;
+    --card: #1E293B;
+    --card-foreground: #F8FAFC;
+    --popover: #1E293B;
+    --popover-foreground: #F8FAFC;
+
+    --primary: #60A5FA;
+    --primary-foreground: #0F172A;
+
+    --destructive: #F87171;
+    --destructive-foreground: #0F172A;
+    --warning: #FBBF24;
+    --warning-foreground: #0F172A;
+    --success: #4ADE80;
+    --success-foreground: #0F172A;
+
+    --border: #334155;
+    --input: #334155;
+    --ring: #60A5FA;
+
+    --secondary: #334155;
+    --secondary-foreground: #F8FAFC;
+    --muted: #1E293B;
+    --muted-foreground: #94A3B8;
+    --accent: #334155;
+    --accent-foreground: #F8FAFC;
+
+    --chart-1: #60A5FA;
+    --chart-2: #F87171;
+    --chart-3: #FBBF24;
+    --chart-4: #4ADE80;
+    --chart-5: #94A3B8;
+
+    --sidebar: #1E293B;
+    --sidebar-foreground: #F8FAFC;
+    --sidebar-primary: #60A5FA;
+    --sidebar-primary-foreground: #0F172A;
+    --sidebar-accent: #334155;
+    --sidebar-accent-foreground: #F8FAFC;
+    --sidebar-border: #334155;
+    --sidebar-ring: #60A5FA;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}

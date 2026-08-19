@@ -14,6 +14,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { getSimulationEvasion } from "../api/client";
 import type { EvasionSimulationResponse } from "../types/api";
 
@@ -51,7 +54,7 @@ function SingleSampleTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded border border-gray-300 bg-white px-3 py-2 text-sm shadow">
+    <div className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground shadow">
       <div className="font-medium">{point.label}</div>
       <div className={point.flagged ? "text-red-600" : "text-gray-600"}>
         anomaly_score: {point.score.toFixed(3)}
@@ -71,7 +74,7 @@ function CusumTooltip({
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
   return (
-    <div className="rounded border border-gray-300 bg-white px-3 py-2 text-sm shadow">
+    <div className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground shadow">
       <div className="font-medium">{point.label}</div>
       <div className="text-red-600">C+ (upper): {point.upper.toFixed(3)}</div>
       <div className="text-blue-600">C- (lower): {point.lower.toFixed(3)}</div>
@@ -96,24 +99,32 @@ function EvasionSim({ athleteId }: EvasionSimProps) {
 
   if (loading) {
     return (
-      <div>
-        <h2 className="text-lg font-medium">Evasion Simulation</h2>
-        <div className="mt-2 flex items-center justify-center gap-3 rounded border border-gray-300 py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-gray-600" />
-          <span className="text-sm text-gray-500">Loading evasion simulation…</span>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Evasion Simulation</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center gap-3 py-12">
+            <div className="h-6 w-6 animate-spin rounded-full border-4 border-muted border-t-primary" />
+            <span className="text-sm text-muted-foreground">Loading evasion simulation…</span>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   if (error || !result) {
     return (
-      <div>
-        <h2 className="text-lg font-medium">Evasion Simulation</h2>
-        <div className="mt-2 rounded border border-gray-300 p-8 text-center">
-          <p className="text-sm font-medium text-red-600">Unable to load evasion simulation</p>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Evasion Simulation</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertTitle>Unable to load evasion simulation</AlertTitle>
+          </Alert>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -164,109 +175,128 @@ function EvasionSim({ athleteId }: EvasionSimProps) {
   const flaggedCount = singleSampleData.filter((d) => d.flagged).length;
 
   return (
-    <div>
-      <h2 className="text-lg font-medium">Evasion Simulation</h2>
-      <p className="mt-1 text-sm text-gray-500">
-        Athlete {result.athlete_id} · biomarker <span className="font-medium">{result.biomarker}</span>{" "}
-        · pattern <span className="font-medium">{result.pattern}</span> · {result.sample_count} samples
-      </p>
+    <Card>
+      <CardHeader>
+        <CardTitle>Evasion Simulation</CardTitle>
+        <CardDescription>
+          Athlete {result.athlete_id} · biomarker <span className="font-medium">{result.biomarker}</span>{" "}
+          · pattern <span className="font-medium">{result.pattern}</span> · {result.sample_count} samples
+        </CardDescription>
+      </CardHeader>
 
-      <div className="mt-3 rounded border border-gray-300 p-3">
-        <h3 className="text-sm font-medium text-gray-700">
-          Single-sample detection (per-sample anomaly score)
-        </h3>
-        <ResponsiveContainer width="100%" height={260}>
-          <BarChart data={singleSampleData} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" />
-            <YAxis domain={[0, 1]} />
-            <Tooltip content={<SingleSampleTooltip />} />
-            <Legend />
-            <ReferenceLine
-              y={SINGLE_SAMPLE_FLAG_THRESHOLD}
-              stroke="#dc2626"
-              strokeDasharray="4 4"
-              label={{ value: "0.55 threshold", position: "insideTopRight", fill: "#dc2626", fontSize: 12 }}
-            />
-            <Bar dataKey="score" name="anomaly_score" isAnimationActive={false}>
-              {singleSampleData.map((d) => (
-                <Cell key={d.index} fill={d.flagged ? "#dc2626" : "#9ca3af"} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="mt-3 rounded border border-gray-300 p-3">
-        <h3 className="text-sm font-medium text-gray-700">
-          Cumulative (CUSUM) detection — {result.biomarker}
-        </h3>
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={cusumData} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" />
-            <YAxis domain={cusumYDomain} tickFormatter={(value: number) => value.toFixed(0)} />
-            <Tooltip content={<CusumTooltip />} />
-            <Legend />
-            <ReferenceLine
-              y={result.cusum_result.threshold}
-              stroke="#111827"
-              strokeDasharray="4 4"
-              label={{
-                value: `threshold (h=${result.cusum_result.threshold})`,
-                position: "insideTopRight",
-                fill: "#111827",
-                fontSize: 12,
-              }}
-            />
-            <Line
-              dataKey="upper"
-              stroke="#dc2626"
-              strokeWidth={2}
-              dot
-              isAnimationActive={false}
-              name="C+ (upper)"
-            />
-            <Line
-              dataKey="lower"
-              stroke="#2563eb"
-              strokeWidth={2}
-              dot
-              isAnimationActive={false}
-              name="C- (lower)"
-            />
-            {flaggedPoint && (
-              <ReferenceDot
-                x={flaggedPoint.label}
-                y={flaggedPoint.value}
-                r={7}
-                fill="#dc2626"
-                stroke="#111827"
-                strokeWidth={2}
-                label={{ value: "flagged", position: "top", fill: "#dc2626", fontSize: 12 }}
+      <CardContent>
+        <div>
+          <h3 className="text-sm font-medium text-foreground">
+            Single-sample detection (per-sample anomaly score)
+          </h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={singleSampleData} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="label" />
+              <YAxis domain={[0, 1]} />
+              <Tooltip content={<SingleSampleTooltip />} />
+              <Legend />
+              <ReferenceLine
+                y={SINGLE_SAMPLE_FLAG_THRESHOLD}
+                stroke="#B91C1C"
+                strokeDasharray="4 4"
+                label={{ value: "0.55 threshold", position: "insideTopRight", fill: "#B91C1C", fontSize: 12 }}
               />
-            )}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+              <Bar dataKey="score" name="anomaly_score" isAnimationActive={false}>
+                {singleSampleData.map((d) => (
+                  <Cell key={d.index} fill={d.flagged ? "#B91C1C" : "#64748B"} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
-      <div className="mt-3 rounded border border-gray-300 p-3 text-sm">
-        <p className="text-gray-500">
-          Baseline established from first {result.baseline_window_used} samples; cumulative
-          detection run across remaining {result.detection_sample_count} samples.
-        </p>
-        <p className="mt-1">
-          Single-sample detection: {flaggedCount} of {result.sample_count} samples flagged.
-        </p>
-        <p className="mt-1">
-          Cumulative (CUSUM) detection:{" "}
-          {result.cusum_flagged
-            ? `flagged at sample ${(result.cusum_result.flagged_at_index ?? 0) + 1}`
-            : "not flagged with current thresholds"}
-          .
-        </p>
-      </div>
-    </div>
+        <Separator className="my-4" />
+
+        <div>
+          <h3 className="text-sm font-medium text-foreground">
+            Cumulative (CUSUM) detection — {result.biomarker}
+          </h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={cusumData} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="label" />
+              <YAxis domain={cusumYDomain} tickFormatter={(value: number) => value.toFixed(0)} />
+              <Tooltip content={<CusumTooltip />} />
+              <Legend />
+              <ReferenceLine
+                y={result.cusum_result.threshold}
+                stroke="#0F172A"
+                strokeDasharray="4 4"
+                label={{
+                  value: `threshold (h=${result.cusum_result.threshold})`,
+                  position: "insideTopRight",
+                  fill: "#0F172A",
+                  fontSize: 12,
+                }}
+              />
+              <Line
+                dataKey="upper"
+                stroke="#B91C1C"
+                strokeWidth={2}
+                dot
+                isAnimationActive={false}
+                name="C+ (upper)"
+              />
+              <Line
+                dataKey="lower"
+                stroke="#1D4ED8"
+                strokeWidth={2}
+                dot
+                isAnimationActive={false}
+                name="C- (lower)"
+              />
+              {flaggedPoint && (
+                <ReferenceDot
+                  x={flaggedPoint.label}
+                  y={flaggedPoint.value}
+                  r={7}
+                  fill="#B91C1C"
+                  stroke="#0F172A"
+                  strokeWidth={2}
+                  label={{ value: "flagged", position: "top", fill: "#B91C1C", fontSize: 12 }}
+                />
+              )}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <Separator className="my-4" />
+
+        <div className="text-sm">
+          <p className="text-muted-foreground">
+            Baseline established from first{" "}
+            <span className="font-mono tabular-nums">{result.baseline_window_used}</span> samples;
+            cumulative detection run across remaining{" "}
+            <span className="font-mono tabular-nums">{result.detection_sample_count}</span> samples.
+          </p>
+          <p className="mt-1">
+            Single-sample detection:{" "}
+            <span className="font-mono tabular-nums">{flaggedCount}</span> of{" "}
+            <span className="font-mono tabular-nums">{result.sample_count}</span> samples flagged.
+          </p>
+          <p className="mt-1">
+            Cumulative (CUSUM) detection:{" "}
+            {result.cusum_flagged ? (
+              <>
+                flagged at sample{" "}
+                <span className="font-mono tabular-nums">
+                  {(result.cusum_result.flagged_at_index ?? 0) + 1}
+                </span>
+              </>
+            ) : (
+              "not flagged with current thresholds"
+            )}
+            .
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
