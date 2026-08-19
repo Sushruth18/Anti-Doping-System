@@ -1,5 +1,8 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getAuditTimeline } from "../api/client";
 import type { AuditEvent, AuditTimelineResponse } from "../types/api";
 
@@ -29,15 +32,15 @@ function describeEvent(event: AuditEvent): EventMeta | null {
       ].filter((flag): flag is string => Boolean(flag));
       return {
         label: "Sample",
-        borderClass: "border-l-gray-300",
+        borderClass: "border-l-border",
         body: (
           <>
-            <div>
+            <div className="font-mono tabular-nums">
               Hb {s.hb.toFixed(1)} g/dL · HCT {s.hct.toFixed(1)}% · RET% {s.ret_pct.toFixed(1)} ·
               OFF {s.off_score.toFixed(1)} · T/E {s.te_ratio.toFixed(2)}
             </div>
             {flags.length > 0 && (
-              <div className="mt-1 text-xs text-gray-500">Flags: {flags.join(", ")}</div>
+              <div className="mt-1 text-xs text-muted-foreground">Flags: {flags.join(", ")}</div>
             )}
           </>
         ),
@@ -51,13 +54,15 @@ function describeEvent(event: AuditEvent): EventMeta | null {
       return {
         label: "Anomaly score",
         borderClass: elevated
-          ? "border-l-red-500"
+          ? "border-l-destructive"
           : moderate
-            ? "border-l-amber-500"
-            : "border-l-gray-300",
+            ? "border-l-warning"
+            : "border-l-border",
         body: (
           <div>
-            score {a.anomaly_score.toFixed(2)} (raw distance {a.mahalanobis_distance.toFixed(2)},{" "}
+            score <span className="font-mono tabular-nums">{a.anomaly_score.toFixed(2)}</span> (raw
+            distance{" "}
+            <span className="font-mono tabular-nums">{a.mahalanobis_distance.toFixed(2)}</span>,{" "}
             {a.method})
           </div>
         ),
@@ -68,11 +73,11 @@ function describeEvent(event: AuditEvent): EventMeta | null {
       const c = event.data;
       return {
         label: "Case opened",
-        borderClass: "border-l-orange-500",
+        borderClass: "border-l-warning",
         body: c.investigator_notes ? (
           <div>{c.investigator_notes}</div>
         ) : (
-          <div className="text-gray-500">No notes provided.</div>
+          <div className="text-muted-foreground">No notes provided.</div>
         ),
       };
     }
@@ -81,11 +86,11 @@ function describeEvent(event: AuditEvent): EventMeta | null {
       const c = event.data;
       return {
         label: "Case closed",
-        borderClass: "border-l-gray-400",
+        borderClass: "border-l-muted-foreground",
         body: c.investigator_notes ? (
           <div>{c.investigator_notes}</div>
         ) : (
-          <div className="text-gray-500">No notes provided.</div>
+          <div className="text-muted-foreground">No notes provided.</div>
         ),
       };
     }
@@ -95,11 +100,11 @@ function describeEvent(event: AuditEvent): EventMeta | null {
       const notes = typeof d.details.notes === "string" ? d.details.notes : null;
       return {
         label: "Decision",
-        borderClass: "border-l-blue-500",
+        borderClass: "border-l-primary",
         body: (
           <div>
             <span className="font-medium">{d.actor}</span> — {d.action}
-            {notes && <div className="mt-1 text-gray-600">{notes}</div>}
+            {notes && <div className="mt-1 text-muted-foreground">{notes}</div>}
           </div>
         ),
       };
@@ -133,33 +138,51 @@ function AuditTimeline({ athleteId }: AuditTimelineProps) {
 
   if (loading) {
     return (
-      <div>
-        <h2 className="text-lg font-medium">Audit Timeline</h2>
-        <div className="mt-2 flex items-center justify-center gap-3 rounded border border-gray-300 py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-gray-600" />
-          <span className="text-sm text-gray-500">Loading audit timeline…</span>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Audit Timeline</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2">
+          {/* Shape-matched to a real event row (label line + body line). */}
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="rounded-lg border border-border border-l-4 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+              <Skeleton className="mt-2 h-4 w-full" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     );
   }
 
   if (error || !result) {
     return (
-      <div>
-        <h2 className="text-lg font-medium">Audit Timeline</h2>
-        <div className="mt-2 rounded border border-gray-300 p-8 text-center">
-          <p className="text-sm font-medium text-red-600">Unable to load audit timeline</p>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Audit Timeline</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertTitle>Unable to load audit timeline</AlertTitle>
+          </Alert>
+        </CardContent>
+      </Card>
     );
   }
 
   if (result.events.length === 0) {
     return (
-      <div>
-        <h2 className="text-lg font-medium">Audit Timeline</h2>
-        <p className="mt-2 text-sm text-gray-500">No history yet for this athlete.</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Audit Timeline</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">No history yet for this athlete.</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -170,29 +193,35 @@ function AuditTimeline({ athleteId }: AuditTimelineProps) {
   const eventsNewestFirst = [...result.events].reverse();
 
   return (
-    <div>
-      <h2 className="text-lg font-medium">Audit Timeline</h2>
-      <ol className="mt-2 flex flex-col gap-2">
-        {eventsNewestFirst.map((event) => {
-          const meta = describeEvent(event);
-          if (!meta) return null;
-          return (
-            <li
-              key={`${event.type}-${event.data.id}`}
-              className={`rounded border border-gray-300 border-l-4 p-3 text-sm ${meta.borderClass}`}
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  {meta.label}
-                </span>
-                <span className="text-xs text-gray-400">{event.timestamp}</span>
-              </div>
-              <div className="mt-1">{meta.body}</div>
-            </li>
-          );
-        })}
-      </ol>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Audit Timeline</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ol className="flex flex-col gap-2">
+          {eventsNewestFirst.map((event) => {
+            const meta = describeEvent(event);
+            if (!meta) return null;
+            return (
+              <li
+                key={`${event.type}-${event.data.id}`}
+                className={`rounded-lg border border-border border-l-4 p-3 text-sm ${meta.borderClass}`}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                    {meta.label}
+                  </span>
+                  <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                    {event.timestamp}
+                  </span>
+                </div>
+                <div className="mt-1">{meta.body}</div>
+              </li>
+            );
+          })}
+        </ol>
+      </CardContent>
+    </Card>
   );
 }
 

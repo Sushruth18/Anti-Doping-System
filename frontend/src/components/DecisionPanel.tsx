@@ -1,4 +1,12 @@
 import { useState } from "react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { createCase, postDecision } from "../api/client";
 import type { AuditLog, Case, DecisionAction } from "../types/api";
 
@@ -8,6 +16,14 @@ const DECISION_ACTIONS: { value: DecisionAction; label: string }[] = [
   { value: "request_more_testing", label: "Request more testing" },
   { value: "close_case", label: "Close case" },
 ];
+
+// Native <select> kept deliberately rather than swapped for the shadcn
+// Select: Base UI's Select is a composite widget driven by `onValueChange`,
+// and adopting it would mean rewriting this field's existing onChange
+// handler. These classes mirror ui/input.tsx so it still reads as part of
+// the same form.
+const NATIVE_SELECT_CLASSES =
+  "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 interface DecisionPanelProps {
   athleteId: number;
@@ -58,32 +74,31 @@ function DecisionPanel({ athleteId }: DecisionPanelProps) {
   };
 
   return (
-    <div>
-      <h2 className="text-lg font-medium">Investigator Decision</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle>Investigator Decision</CardTitle>
+      </CardHeader>
 
-      <div className="mt-2 rounded border border-gray-300 p-3">
+      <CardContent>
         {!caseData && (
           <div className="flex flex-col gap-2">
-            <label htmlFor="case-notes" className="text-sm text-gray-600">
+            <Label htmlFor="case-notes" className="text-muted-foreground">
               Notes (optional)
-            </label>
-            <textarea
+            </Label>
+            <Textarea
               id="case-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
               placeholder="Initial notes for this case…"
-              className="rounded border border-gray-300 p-2 text-sm"
             />
-            <button
-              onClick={handleOpenCase}
-              disabled={openingCase}
-              className="w-fit rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-gray-700 disabled:bg-gray-300"
-            >
+            <Button onClick={handleOpenCase} disabled={openingCase} className="w-fit">
               {openingCase ? "Opening…" : "Open Case"}
-            </button>
+            </Button>
             {openCaseError && (
-              <p className="text-sm font-medium text-red-600">Unable to open case</p>
+              <Alert variant="destructive">
+                <AlertTitle>Unable to open case</AlertTitle>
+              </Alert>
             )}
           </div>
         )}
@@ -91,81 +106,93 @@ function DecisionPanel({ athleteId }: DecisionPanelProps) {
         {caseData && (
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span
-                className={`rounded-full px-2.5 py-1 text-sm font-medium ${
+              <Badge
+                className={
                   caseData.status === "closed"
-                    ? "bg-gray-200 text-gray-600"
-                    : "bg-green-100 text-green-700"
-                }`}
+                    ? "bg-muted text-muted-foreground"
+                    : "bg-success/10 text-success"
+                }
               >
                 Case {caseData.status}
-              </span>
-              <span className="text-sm text-gray-500">
-                Opened {caseData.opened_at}
-                {caseData.closed_at ? ` · Closed ${caseData.closed_at}` : ""}
+              </Badge>
+              <span className="text-sm text-muted-foreground">
+                Opened <span className="font-mono tabular-nums">{caseData.opened_at}</span>
+                {caseData.closed_at ? (
+                  <>
+                    {" · "}Closed{" "}
+                    <span className="font-mono tabular-nums">{caseData.closed_at}</span>
+                  </>
+                ) : (
+                  ""
+                )}
               </span>
             </div>
 
             {caseData.investigator_notes && (
-              <p className="text-sm text-gray-700">{caseData.investigator_notes}</p>
+              <p className="text-sm text-foreground">{caseData.investigator_notes}</p>
             )}
 
             {auditLogs.length > 0 && (
-              <ul className="flex flex-col gap-1 text-sm text-gray-600">
+              <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
                 {auditLogs.map((log) => (
                   <li key={log.id}>
-                    {log.timestamp} — {log.actor}: {log.action}
+                    <span className="font-mono tabular-nums">{log.timestamp}</span> — {log.actor}:{" "}
+                    {log.action}
                   </li>
                 ))}
               </ul>
             )}
 
             {caseData.status === "open" && (
-              <div className="flex flex-col gap-2 border-t border-gray-200 pt-3">
-                <label htmlFor="decision-action" className="text-sm text-gray-600">
-                  Action
-                </label>
-                <select
-                  id="decision-action"
-                  value={action}
-                  onChange={(e) => setAction(e.target.value as DecisionAction)}
-                  className="rounded border border-gray-300 p-2 text-sm"
-                >
-                  {DECISION_ACTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+              <>
+                <Separator />
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="decision-action" className="text-muted-foreground">
+                    Action
+                  </Label>
+                  <select
+                    id="decision-action"
+                    value={action}
+                    onChange={(e) => setAction(e.target.value as DecisionAction)}
+                    className={NATIVE_SELECT_CLASSES}
+                  >
+                    {DECISION_ACTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
 
-                <label htmlFor="decision-investigator" className="text-sm text-gray-600">
-                  Investigator
-                </label>
-                <input
-                  id="decision-investigator"
-                  type="text"
-                  value={investigator}
-                  onChange={(e) => setInvestigator(e.target.value)}
-                  placeholder="Your name"
-                  className="rounded border border-gray-300 p-2 text-sm"
-                />
+                  <Label htmlFor="decision-investigator" className="text-muted-foreground">
+                    Investigator
+                  </Label>
+                  <Input
+                    id="decision-investigator"
+                    type="text"
+                    value={investigator}
+                    onChange={(e) => setInvestigator(e.target.value)}
+                    placeholder="Your name"
+                  />
 
-                <button
-                  onClick={handleLogDecision}
-                  disabled={loggingDecision || !investigator.trim()}
-                  className="w-fit rounded bg-gray-900 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-gray-700 disabled:bg-gray-300"
-                >
-                  {loggingDecision ? "Logging…" : "Log Decision"}
-                </button>
-                {decisionError && (
-                  <p className="text-sm font-medium text-red-600">Unable to log decision</p>
-                )}
-              </div>
+                  <Button
+                    onClick={handleLogDecision}
+                    disabled={loggingDecision || !investigator.trim()}
+                    className="w-fit"
+                  >
+                    {loggingDecision ? "Logging…" : "Log Decision"}
+                  </Button>
+                  {decisionError && (
+                    <Alert variant="destructive">
+                      <AlertTitle>Unable to log decision</AlertTitle>
+                    </Alert>
+                  )}
+                </div>
+              </>
             )}
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
