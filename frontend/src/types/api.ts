@@ -156,16 +156,24 @@ export type AnomaliesResponse = AnomalyDetail[];
 export type RecommendationResponse = Recommendation;
 
 /** GET /recommendations/budget?budget=N */
-export interface BudgetRecommendationItem extends Recommendation {
-  athlete_name: string;
-  sport: string;
-  rank: number;
+export interface BudgetSelectedItem {
+  athlete_id: number;
+  name: string;
+  action_type: RecommendationActionType;
+  value_score: number;
+  cost: number;
+  cumulative_cost_after: number; // running total of selected cost, in selection order
+  explanation_text: string;
 }
 
-export interface BudgetRecommendationsResponse {
+export interface BudgetAllocationResponse {
   budget: number;
-  total_cost_used: number;
-  selected: BudgetRecommendationItem[];
+  selected: BudgetSelectedItem[]; // knapsack-style selection by value_score/cost ratio, descending
+  total_cost: number; // sum of cost across `selected`, <= budget
+  total_value: number; // sum of value_score across `selected`
+  athletes_evaluated: number; // every athlete compute_recommendation could score at all, INCLUDING no_action
+  candidates_considered: number; // subset of athletes_evaluated eligible for the budget pool (excludes no_action)
+  candidates_selected: number; // subset of candidates_considered the budget could afford; == selected.length
 }
 
 /** POST /athletes/{id}/samples */

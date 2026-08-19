@@ -149,6 +149,7 @@ def test_simulation_evasion_unknown_athlete_404(client, db_session):
     assert response.status_code == 404
 
 
+<<<<<<< HEAD
 def test_simulation_evasion_insufficient_samples_for_baseline_split_422(client, db_session):
     # Real seeded athletes now have 8-20 samples each (post-regeneration),
     # so the thin-history case can no longer be reached by picking a
@@ -194,3 +195,126 @@ def test_simulation_evasion_baseline_window_below_two_422(client, db_session):
     )
 
     assert response.status_code == 422
+=======
+def _seed_full_cohort(db_session) -> None:
+    # Budget allocation needs many candidates to be meaningful (a single
+    # athlete can't demonstrate "selection stops when the budget runs
+    # out"), so this loads the whole real seeded cohort rather than one
+    # athlete at a time like _seed_athlete above.
+    athletes_data = json.loads(_ATHLETES_PATH.read_text(encoding="utf-8"))
+    samples_data = json.loads(_SAMPLES_PATH.read_text(encoding="utf-8"))
+
+    for row in athletes_data:
+        db_session.add(Athlete(**row))
+    for row in samples_data:
+        row = dict(row)
+        row["date"] = datetime.strptime(row["date"], "%Y-%m-%d").date()
+        db_session.add(Sample(**row))
+
+    db_session.commit()
+
+
+def test_budget_recommendations_200_with_expected_keys(client, db_session):
+    _seed_full_cohort(db_session)
+
+    response = client.get("/recommendations/budget", params={"budget": 50})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert set(body.keys()) == {
+        "budget",
+        "selected",
+        "total_cost",
+        "total_value",
+        "athletes_evaluated",
+        "candidates_considered",
+        "candidates_selected",
+    }
+    assert body["budget"] == 50
+    assert body["candidates_selected"] == len(body["selected"])
+    if body["selected"]:
+        assert set(body["selected"][0].keys()) == {
+            "athlete_id",
+            "name",
+            "action_type",
+            "value_score",
+            "cost",
+            "cumulative_cost_after",
+            "explanation_text",
+        }
+
+
+def test_budget_recommendations_small_budget_caps_selection(client, db_session):
+    _seed_full_cohort(db_session)
+
+    response = client.get("/recommendations/budget", params={"budget": 2})
+
+    assert response.status_code == 200
+    body = response.json()
+    # The real seeded 80-athlete cohort has well more than 2 actionable
+    # recommendations (see test_action_engine.py/test_recommendations.py's
+    # Logan Rossi/Indigo Berg cases, among others) -- this confirms the cap
+    # is the budget doing its job, not "there just weren't more candidates."
+    assert body["candidates_considered"] > 2
+    assert len(body["selected"]) <= 2
+    assert body["total_cost"] <= 2
+
+
+@pytest.mark.parametrize("budget", [0, -5])
+def test_budget_recommendations_non_positive_budget_422(client, db_session, budget):
+    response = client.get("/recommendations/budget", params={"budget": budget})
+
+    assert response.status_code == 422
+
+
+def test_budget_recommendations_athletes_evaluated_vs_candidates_considered_diverge(
+    client, db_session
+):
+    # Concrete numeric example against the real 80-athlete seeded cohort
+    # (hand-confirmed by running compute_recommendation directly over
+    # every seeded athlete, same as this route's own loop):
+    #   80 athletes total -> all 80 have enough history to be scored at
+    #   all (athletes_evaluated == 80), but 30 of them score "no_action"
+    #   (nothing anomalous -> nothing to fund) and are excluded from the
+    #   budget pool, leaving candidates_considered == 50. The two counts
+    #   must diverge by exactly that 30, not collapse to the same number.
+    _seed_full_cohort(db_session)
+
+    response = client.get("/recommendations/budget", params={"budget": 1000})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["athletes_evaluated"] == 80
+    assert body["candidates_considered"] == 50
+    assert body["athletes_evaluated"] - body["candidates_considered"] == 30
+
+
+def test_budget_recommendations_excludes_insufficient_history_athlete_from_both_counts(
+    client, db_session
+):
+    _seed_full_cohort(db_session)
+
+    baseline_response = client.get("/recommendations/budget", params={"budget": 1000})
+    assert baseline_response.status_code == 200
+    baseline_body = baseline_response.json()
+    baseline_evaluated = baseline_body["athletes_evaluated"]
+    baseline_considered = baseline_body["candidates_considered"]
+    assert baseline_evaluated > 0  # non-trivial pool, not a vacuous check
+
+    # No samples at all -- compute_recommendation returns None for this
+    # athlete (insufficient_history), same case
+    # test_compute_recommendation_unscored_athlete_returns_none covers
+    # directly against action_engine. It was never scored at all, so it
+    # must not move athletes_evaluated (unlike a real no_action result,
+    # which DOES count toward athletes_evaluated but not
+    # candidates_considered) or candidates_considered.
+    db_session.add(Athlete(name="No Samples Athlete", sport="Cycling", age=25))
+    db_session.commit()
+
+    response = client.get("/recommendations/budget", params={"budget": 1000})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["athletes_evaluated"] == baseline_evaluated
+    assert body["candidates_considered"] == baseline_considered
+>>>>>>> dev1/day5-budget-allocator
