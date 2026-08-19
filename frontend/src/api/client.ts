@@ -1,6 +1,7 @@
 import type {
   AnomalyDetail,
   AthleteListItem,
+  AuditTimelineResponse,
   Case,
   DecisionInput,
   DecisionResponse,
@@ -83,4 +84,12 @@ export async function postDecision(
     throw new Error(`POST /cases/${caseId}/decision failed: ${response.status}`);
   }
   return response.json() as Promise<DecisionResponse>;
+}
+
+export async function getAuditTimeline(athleteId: number): Promise<AuditTimelineResponse> {
+  const response = await fetch(`${API_BASE_URL}/audit/${athleteId}`);
+  if (!response.ok) {
+    throw new Error(`GET /audit/${athleteId} failed: ${response.status}`);
+  }
+  return response.json() as Promise<AuditTimelineResponse>;
 }
