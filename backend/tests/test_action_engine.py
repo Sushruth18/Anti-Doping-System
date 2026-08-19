@@ -113,51 +113,51 @@ def test_compute_value_score_biological_passport_review_tier():
 # confirmed against this exact dataset in the preceding investigation.
 
 
-def test_compute_recommendation_taylor_gomez_no_action(seeded_db):
-    # anomaly_score_normalized = 0.1226168959151116 < 0.30 -> no_action,
-    # value_score/cost forced to 0.0 (no_action never reaches
-    # compute_value_score -- see ACTION_TIERS' cost=None/sensitivity=None
-    # for this tier).
+def test_compute_recommendation_taylor_gomez_biological_passport_review(seeded_db):
+    # anomaly_score_normalized = 0.7638289463882623, in [0.70, 0.85) ->
+    # biological_passport_review (cost=5.0, sensitivity=0.85).
+    # value_score = 0.7638289463882623 * 0.010885796662295473 * 0.85 / 5.0
+    #             = 0.0014135307211768622
     rec = compute_recommendation(4, seeded_db)
 
     assert rec is not None
     assert rec["athlete_id"] == 4
-    assert rec["action_type"] == "no_action"
-    assert rec["anomaly_score"] == pytest.approx(0.1226168959151116)
-    assert rec["uncertainty_score"] == pytest.approx(0.03346660544910412)
-    assert rec["value_score"] == pytest.approx(0.0)
-    assert rec["cost"] == pytest.approx(0.0)
+    assert rec["action_type"] == "biological_passport_review"
+    assert rec["anomaly_score"] == pytest.approx(0.7638289463882623)
+    assert rec["uncertainty_score"] == pytest.approx(0.010885796662295473)
+    assert rec["value_score"] == pytest.approx(0.0014135307211768622)
+    assert rec["cost"] == pytest.approx(5.0)
 
 
-def test_compute_recommendation_logan_rossi_increase_monitoring(seeded_db):
-    # anomaly_score_normalized = 0.3260226578956815, in [0.30, 0.55) ->
-    # increase_monitoring (cost=1.0, sensitivity=0.3).
-    # value_score = 0.3260226578956815 * 0.04913508126939056 * 0.3 / 1.0
-    #             = 0.004805744937410108
+def test_compute_recommendation_logan_rossi_target_test(seeded_db):
+    # anomaly_score_normalized = 0.5557931427116629, in [0.55, 0.70) ->
+    # target_test (cost=3.0, sensitivity=0.7).
+    # value_score = 0.5557931427116629 * 0.01540188035194664 * 0.7 / 3.0
+    #             = 0.0019973938797114015
     rec = compute_recommendation(44, seeded_db)
 
     assert rec is not None
     assert rec["athlete_id"] == 44
-    assert rec["action_type"] == "increase_monitoring"
-    assert rec["anomaly_score"] == pytest.approx(0.3260226578956815)
-    assert rec["uncertainty_score"] == pytest.approx(0.04913508126939056)
-    assert rec["value_score"] == pytest.approx(0.004805744937410108)
-    assert rec["cost"] == pytest.approx(1.0)
+    assert rec["action_type"] == "target_test"
+    assert rec["anomaly_score"] == pytest.approx(0.5557931427116629)
+    assert rec["uncertainty_score"] == pytest.approx(0.01540188035194664)
+    assert rec["value_score"] == pytest.approx(0.0019973938797114015)
+    assert rec["cost"] == pytest.approx(3.0)
 
 
 def test_compute_recommendation_indigo_berg_biological_passport_review(seeded_db):
-    # anomaly_score_normalized = 0.8178841807108579, in [0.70, 0.85) ->
+    # anomaly_score_normalized = 0.7400323494271293, in [0.70, 0.85) ->
     # biological_passport_review (cost=5.0, sensitivity=0.85).
-    # value_score = 0.8178841807108579 * 0.03343842768976375 * 0.85 / 5.0
-    #             = 0.004649289376001287
+    # value_score = 0.7400323494271293 * 0.011206210759087933 * 0.85 / 5.0
+    #             = 0.0014098029409579807
     rec = compute_recommendation(65, seeded_db)
 
     assert rec is not None
     assert rec["athlete_id"] == 65
     assert rec["action_type"] == "biological_passport_review"
-    assert rec["anomaly_score"] == pytest.approx(0.8178841807108579)
-    assert rec["uncertainty_score"] == pytest.approx(0.03343842768976375)
-    assert rec["value_score"] == pytest.approx(0.004649289376001287)
+    assert rec["anomaly_score"] == pytest.approx(0.7400323494271293)
+    assert rec["uncertainty_score"] == pytest.approx(0.011206210759087933)
+    assert rec["value_score"] == pytest.approx(0.0014098029409579807)
     assert rec["cost"] == pytest.approx(5.0)
 
 
