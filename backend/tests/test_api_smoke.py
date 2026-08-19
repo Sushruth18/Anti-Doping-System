@@ -149,7 +149,6 @@ def test_simulation_evasion_unknown_athlete_404(client, db_session):
     assert response.status_code == 404
 
 
-<<<<<<< HEAD
 def test_simulation_evasion_insufficient_samples_for_baseline_split_422(client, db_session):
     # Real seeded athletes now have 8-20 samples each (post-regeneration),
     # so the thin-history case can no longer be reached by picking a
@@ -195,7 +194,7 @@ def test_simulation_evasion_baseline_window_below_two_422(client, db_session):
     )
 
     assert response.status_code == 422
-=======
+
 def _seed_full_cohort(db_session) -> None:
     # Budget allocation needs many candidates to be meaningful (a single
     # athlete can't demonstrate "selection stops when the budget runs
@@ -274,10 +273,10 @@ def test_budget_recommendations_athletes_evaluated_vs_candidates_considered_dive
     # (hand-confirmed by running compute_recommendation directly over
     # every seeded athlete, same as this route's own loop):
     #   80 athletes total -> all 80 have enough history to be scored at
-    #   all (athletes_evaluated == 80), but 30 of them score "no_action"
+    #   all (athletes_evaluated == 80), but 9 of them score "no_action"
     #   (nothing anomalous -> nothing to fund) and are excluded from the
-    #   budget pool, leaving candidates_considered == 50. The two counts
-    #   must diverge by exactly that 30, not collapse to the same number.
+    #   budget pool, leaving candidates_considered == 71. The two counts
+    #   must diverge by exactly that 9, not collapse to the same number.
     _seed_full_cohort(db_session)
 
     response = client.get("/recommendations/budget", params={"budget": 1000})
@@ -285,8 +284,8 @@ def test_budget_recommendations_athletes_evaluated_vs_candidates_considered_dive
     assert response.status_code == 200
     body = response.json()
     assert body["athletes_evaluated"] == 80
-    assert body["candidates_considered"] == 50
-    assert body["athletes_evaluated"] - body["candidates_considered"] == 30
+    assert body["candidates_considered"] == 71
+    assert body["athletes_evaluated"] - body["candidates_considered"] == 9
 
 
 def test_budget_recommendations_excludes_insufficient_history_athlete_from_both_counts(
@@ -317,4 +316,3 @@ def test_budget_recommendations_excludes_insufficient_history_athlete_from_both_
     body = response.json()
     assert body["athletes_evaluated"] == baseline_evaluated
     assert body["candidates_considered"] == baseline_considered
->>>>>>> dev1/day5-budget-allocator
