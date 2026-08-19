@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getAthleteAnomalies, getAthleteRecommendation, getAthleteTrajectory } from "../api/client";
+import AuditTimeline from "../components/AuditTimeline";
 import DecisionPanel from "../components/DecisionPanel";
+import EvasionSim from "../components/EvasionSim";
 import ExplanationPanel from "../components/ExplanationPanel";
 import RecommendationPanel from "../components/RecommendationPanel";
 import TrajectoryChart from "../components/TrajectoryChart";
@@ -145,6 +147,10 @@ function AthleteProfile() {
         </div>
 
         <div className="rounded-lg bg-white p-4 shadow-sm">
+          <EvasionSim athleteId={Number(id)} />
+        </div>
+
+        <div className="rounded-lg bg-white p-4 shadow-sm">
           {recommendationLoading && (
             <div className="flex items-center justify-center gap-3 py-8">
               <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-gray-600" />
@@ -163,6 +169,10 @@ function AthleteProfile() {
 
         <div className="rounded-lg bg-white p-4 shadow-sm">
           <DecisionPanel athleteId={Number(id)} />
+        </div>
+
+        <div className="rounded-lg bg-white p-4 shadow-sm">
+          <AuditTimeline athleteId={Number(id)} />
         </div>
       </div>
     </div>

@@ -205,7 +205,7 @@ function EvasionSim({ athleteId }: EvasionSimProps) {
           <LineChart data={cusumData} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="label" />
-            <YAxis domain={cusumYDomain} />
+            <YAxis domain={cusumYDomain} tickFormatter={(value: number) => value.toFixed(0)} />
             <Tooltip content={<CusumTooltip />} />
             <Legend />
             <ReferenceLine
