@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 import pytest
@@ -150,17 +150,34 @@ def test_simulation_evasion_unknown_athlete_404(client, db_session):
 
 
 def test_simulation_evasion_insufficient_samples_for_baseline_split_422(client, db_session):
-    # Real seeded athletes have exactly 5 samples (see the Day 5 evaluation
-    # note in docs/api-contract.md). With the default baseline_window=2,
-    # that's just enough (5 >= 2+3). Asking for a larger baseline_window
-    # pushes the same athlete below the floor without needing a separate
-    # short-history fixture.
-    athlete_id = _find_seeded_athlete_id("epo")
-    _seed_athlete(db_session, athlete_id)
+    # Real seeded athletes now have 8-20 samples each (post-regeneration),
+    # so the thin-history case can no longer be reached by picking a
+    # seeded athlete and cranking baseline_window up -- construct a
+    # throwaway athlete with fewer samples than baseline_window + 3
+    # requires directly. Default baseline_window=2 needs 2+3=5 samples
+    # minimum; this athlete only has 3.
+    athlete = Athlete(name="Insufficient Samples Athlete", sport="Cycling", age=25)
+    db_session.add(athlete)
+    db_session.commit()
+    db_session.refresh(athlete)
+
+    for i in range(3):
+        db_session.add(
+            Sample(
+                athlete_id=athlete.id,
+                date=date(2026, 1, 1 + i),
+                hb=14.0,
+                hct=42.0,
+                ret_pct=1.5,
+                off_score=66.51530771650467,
+                te_ratio=1.0,
+            )
+        )
+    db_session.commit()
 
     response = client.get(
         "/simulation/evasion",
-        params={"athlete_id": athlete_id, "baseline_window": 3},
+        params={"athlete_id": athlete.id},
     )
 
     assert response.status_code == 422
