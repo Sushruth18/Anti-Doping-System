@@ -11,7 +11,7 @@ raises (same class of issue as `latest_uncertainty_score`).
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, field_serializer
@@ -31,7 +31,7 @@ class RecommendationOut(BaseModel):
     # always returns `id=None` since there's no `recommendations` table to
     # assign a real primary key from yet (see module docstring). Flagging
     # this as a contract deviation rather than inventing a fake id.
-    id: int | None
+    id: Optional[int]
     athlete_id: int
     action_type: Literal[
         "no_action",

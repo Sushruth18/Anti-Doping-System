@@ -8,210 +8,210 @@
   },
   {
     "id": 2,
-    "name": "Jordan Dupont",
+    "name": "Jordan Chen",
     "sport": "Running",
     "age": 18,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 3,
-    "name": "Sam Walsh",
+    "name": "Sam Chen",
     "sport": "Swimming",
     "age": 26,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 4,
-    "name": "Taylor Gomez",
+    "name": "Taylor Chen",
     "sport": "Rowing",
     "age": 25,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 5,
-    "name": "Casey Kim",
+    "name": "Casey Chen",
     "sport": "Triathlon",
     "age": 25,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 6,
-    "name": "Morgan Nguyen",
+    "name": "Morgan Chen",
     "sport": "Cycling",
     "age": 22,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 7,
-    "name": "Riley Dubois",
+    "name": "Riley Chen",
     "sport": "Running",
     "age": 21,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 8,
-    "name": "Quinn Okonkwo",
+    "name": "Quinn Chen",
     "sport": "Swimming",
     "age": 35,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 9,
-    "name": "Avery Silva",
+    "name": "Avery Chen",
     "sport": "Rowing",
     "age": 20,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 10,
-    "name": "Blake Okafor",
+    "name": "Blake Chen",
     "sport": "Triathlon",
     "age": 31,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 11,
-    "name": "Cameron Hayes",
+    "name": "Cameron Chen",
     "sport": "Cycling",
     "age": 19,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 12,
-    "name": "Dakota Andersson",
+    "name": "Dakota Chen",
     "sport": "Running",
     "age": 18,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 13,
-    "name": "Emery Patel",
+    "name": "Emery Chen",
     "sport": "Swimming",
     "age": 20,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 14,
-    "name": "Finley Eriksson",
+    "name": "Finley Chen",
     "sport": "Rowing",
     "age": 24,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 15,
-    "name": "Gray Petrov",
+    "name": "Gray Chen",
     "sport": "Triathlon",
     "age": 25,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 16,
-    "name": "Harper Hansen",
+    "name": "Harper Chen",
     "sport": "Cycling",
     "age": 34,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 17,
-    "name": "Indigo Berg",
+    "name": "Indigo Chen",
     "sport": "Running",
     "age": 18,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 18,
-    "name": "Jules Ivanov",
+    "name": "Jules Chen",
     "sport": "Swimming",
     "age": 35,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 19,
-    "name": "Kai Nakamura",
+    "name": "Kai Chen",
     "sport": "Rowing",
     "age": 24,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 20,
-    "name": "Logan Rossi",
+    "name": "Logan Chen",
     "sport": "Triathlon",
     "age": 35,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 21,
-    "name": "Marlow Fischer",
+    "name": "Marlow Chen",
     "sport": "Cycling",
     "age": 31,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 22,
-    "name": "Noel Santos",
+    "name": "Noel Chen",
     "sport": "Running",
     "age": 25,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 23,
-    "name": "Oakley Morales",
+    "name": "Oakley Chen",
     "sport": "Swimming",
     "age": 32,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 24,
-    "name": "Parker Costa",
+    "name": "Parker Chen",
     "sport": "Rowing",
     "age": 26,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 25,
-    "name": "Alex Chen",
+    "name": "Alex Okonkwo",
     "sport": "Triathlon",
     "age": 18,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 26,
-    "name": "Jordan Dupont",
+    "name": "Jordan Okonkwo",
     "sport": "Cycling",
     "age": 23,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 27,
-    "name": "Sam Walsh",
+    "name": "Sam Okonkwo",
     "sport": "Running",
     "age": 31,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 28,
-    "name": "Taylor Gomez",
+    "name": "Taylor Okonkwo",
     "sport": "Swimming",
     "age": 28,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 29,
-    "name": "Casey Kim",
+    "name": "Casey Okonkwo",
     "sport": "Rowing",
     "age": 26,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 30,
-    "name": "Morgan Nguyen",
+    "name": "Morgan Okonkwo",
     "sport": "Triathlon",
     "age": 22,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 31,
-    "name": "Riley Dubois",
+    "name": "Riley Okonkwo",
     "sport": "Cycling",
     "age": 24,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
@@ -225,210 +225,210 @@
   },
   {
     "id": 33,
-    "name": "Avery Silva",
+    "name": "Avery Okonkwo",
     "sport": "Swimming",
     "age": 21,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 34,
-    "name": "Blake Okafor",
+    "name": "Blake Okonkwo",
     "sport": "Rowing",
     "age": 20,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 35,
-    "name": "Cameron Hayes",
+    "name": "Cameron Okonkwo",
     "sport": "Triathlon",
     "age": 30,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 36,
-    "name": "Dakota Andersson",
+    "name": "Dakota Okonkwo",
     "sport": "Cycling",
     "age": 21,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 37,
-    "name": "Emery Patel",
+    "name": "Emery Okonkwo",
     "sport": "Running",
     "age": 29,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 38,
-    "name": "Finley Eriksson",
+    "name": "Finley Okonkwo",
     "sport": "Swimming",
     "age": 29,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 39,
-    "name": "Gray Petrov",
+    "name": "Gray Okonkwo",
     "sport": "Rowing",
     "age": 26,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 40,
-    "name": "Harper Hansen",
+    "name": "Harper Okonkwo",
     "sport": "Triathlon",
     "age": 19,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 41,
-    "name": "Indigo Berg",
+    "name": "Indigo Okonkwo",
     "sport": "Cycling",
     "age": 32,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 42,
-    "name": "Jules Ivanov",
+    "name": "Jules Okonkwo",
     "sport": "Running",
     "age": 35,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 43,
-    "name": "Kai Nakamura",
+    "name": "Kai Okonkwo",
     "sport": "Swimming",
     "age": 21,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 44,
-    "name": "Logan Rossi",
+    "name": "Logan Okonkwo",
     "sport": "Rowing",
     "age": 30,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 45,
-    "name": "Marlow Fischer",
+    "name": "Marlow Okonkwo",
     "sport": "Triathlon",
     "age": 20,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 46,
-    "name": "Noel Santos",
+    "name": "Noel Okonkwo",
     "sport": "Cycling",
     "age": 35,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 47,
-    "name": "Oakley Morales",
+    "name": "Oakley Okonkwo",
     "sport": "Running",
     "age": 27,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 48,
-    "name": "Parker Costa",
+    "name": "Parker Okonkwo",
     "sport": "Swimming",
     "age": 29,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 49,
-    "name": "Alex Chen",
+    "name": "Alex Petrov",
     "sport": "Rowing",
     "age": 24,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 50,
-    "name": "Jordan Dupont",
+    "name": "Jordan Petrov",
     "sport": "Triathlon",
     "age": 20,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 51,
-    "name": "Sam Walsh",
+    "name": "Sam Petrov",
     "sport": "Cycling",
     "age": 19,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 52,
-    "name": "Taylor Gomez",
+    "name": "Taylor Petrov",
     "sport": "Running",
     "age": 25,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 53,
-    "name": "Casey Kim",
+    "name": "Casey Petrov",
     "sport": "Swimming",
     "age": 27,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 54,
-    "name": "Morgan Nguyen",
+    "name": "Morgan Petrov",
     "sport": "Rowing",
     "age": 20,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 55,
-    "name": "Riley Dubois",
+    "name": "Riley Petrov",
     "sport": "Triathlon",
     "age": 25,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 56,
-    "name": "Quinn Okonkwo",
+    "name": "Quinn Petrov",
     "sport": "Cycling",
     "age": 21,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 57,
-    "name": "Avery Silva",
+    "name": "Avery Petrov",
     "sport": "Running",
     "age": 30,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 58,
-    "name": "Blake Okafor",
+    "name": "Blake Petrov",
     "sport": "Swimming",
     "age": 26,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 59,
-    "name": "Cameron Hayes",
+    "name": "Cameron Petrov",
     "sport": "Rowing",
     "age": 32,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 60,
-    "name": "Dakota Andersson",
+    "name": "Dakota Petrov",
     "sport": "Triathlon",
     "age": 29,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 61,
-    "name": "Emery Patel",
+    "name": "Emery Petrov",
     "sport": "Cycling",
     "age": 23,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 62,
-    "name": "Finley Eriksson",
+    "name": "Finley Petrov",
     "sport": "Running",
     "age": 29,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
@@ -442,119 +442,119 @@
   },
   {
     "id": 64,
-    "name": "Harper Hansen",
+    "name": "Harper Petrov",
     "sport": "Rowing",
     "age": 24,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 65,
-    "name": "Indigo Berg",
+    "name": "Indigo Petrov",
     "sport": "Triathlon",
     "age": 26,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 66,
-    "name": "Jules Ivanov",
+    "name": "Jules Petrov",
     "sport": "Cycling",
     "age": 20,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 67,
-    "name": "Kai Nakamura",
+    "name": "Kai Petrov",
     "sport": "Running",
     "age": 23,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 68,
-    "name": "Logan Rossi",
+    "name": "Logan Petrov",
     "sport": "Swimming",
     "age": 35,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 69,
-    "name": "Marlow Fischer",
+    "name": "Marlow Petrov",
     "sport": "Rowing",
     "age": 25,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 70,
-    "name": "Noel Santos",
+    "name": "Noel Petrov",
     "sport": "Triathlon",
     "age": 23,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 71,
-    "name": "Oakley Morales",
+    "name": "Oakley Petrov",
     "sport": "Cycling",
     "age": 32,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 72,
-    "name": "Parker Costa",
+    "name": "Parker Petrov",
     "sport": "Running",
     "age": 30,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 73,
-    "name": "Alex Chen",
+    "name": "Alex Santos",
     "sport": "Swimming",
     "age": 26,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 74,
-    "name": "Jordan Dupont",
+    "name": "Jordan Santos",
     "sport": "Rowing",
     "age": 35,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 75,
-    "name": "Sam Walsh",
+    "name": "Sam Santos",
     "sport": "Triathlon",
     "age": 25,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"
   },
   {
     "id": 76,
-    "name": "Taylor Gomez",
+    "name": "Taylor Santos",
     "sport": "Cycling",
     "age": 28,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.4, \"std\": 0.75}, \"hct\": {\"mean\": 45.0, \"std\": 2.0}, \"ret_pct\": {\"mean\": 1.05, \"std\": 0.26}, \"te_ratio\": {\"mean\": 1.15, \"std\": 0.22}, \"off_score\": {\"mean\": 92.5, \"std\": 9.5}}"
   },
   {
     "id": 77,
-    "name": "Casey Kim",
+    "name": "Casey Santos",
     "sport": "Running",
     "age": 19,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.8, \"std\": 0.7}, \"hct\": {\"mean\": 43.5, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.12, \"std\": 0.28}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 84.5, \"std\": 9.5}}"
   },
   {
     "id": 78,
-    "name": "Morgan Nguyen",
+    "name": "Morgan Santos",
     "sport": "Swimming",
     "age": 25,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.5, \"std\": 0.65}, \"hct\": {\"mean\": 42.8, \"std\": 1.8}, \"ret_pct\": {\"mean\": 1.08, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.08, \"std\": 0.18}, \"off_score\": {\"mean\": 82.6, \"std\": 9.5}}"
   },
   {
     "id": 79,
-    "name": "Riley Dubois",
+    "name": "Riley Santos",
     "sport": "Rowing",
     "age": 19,
     "baseline_prior_json": "{\"hb\": {\"mean\": 15.1, \"std\": 0.72}, \"hct\": {\"mean\": 44.8, \"std\": 2.1}, \"ret_pct\": {\"mean\": 1.0, \"std\": 0.24}, \"te_ratio\": {\"mean\": 1.12, \"std\": 0.21}, \"off_score\": {\"mean\": 91.0, \"std\": 9.5}}"
   },
   {
     "id": 80,
-    "name": "Quinn Okonkwo",
+    "name": "Quinn Santos",
     "sport": "Triathlon",
     "age": 28,
     "baseline_prior_json": "{\"hb\": {\"mean\": 14.9, \"std\": 0.68}, \"hct\": {\"mean\": 44.0, \"std\": 1.9}, \"ret_pct\": {\"mean\": 1.1, \"std\": 0.27}, \"te_ratio\": {\"mean\": 1.1, \"std\": 0.2}, \"off_score\": {\"mean\": 86.1, \"std\": 9.5}}"

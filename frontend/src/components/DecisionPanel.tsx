@@ -1,29 +1,21 @@
 import { useState } from "react";
-import { Alert, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import { createCase, postDecision } from "../api/client";
 import type { AuditLog, Case, DecisionAction } from "../types/api";
+import {
+  FolderOpen,
+  CheckCircle,
+  TestTubeDiagonal,
+  XCircle,
+  ArrowUpCircle,
+  Clock,
+} from "lucide-react";
 
-const DECISION_ACTIONS: { value: DecisionAction; label: string }[] = [
-  { value: "escalate", label: "Escalate" },
-  { value: "clear", label: "Clear" },
-  { value: "request_more_testing", label: "Request more testing" },
-  { value: "close_case", label: "Close case" },
+const DECISION_ACTIONS: { value: DecisionAction; label: string; icon: React.ReactNode }[] = [
+  { value: "escalate",           label: "Escalate",            icon: <ArrowUpCircle size={13} /> },
+  { value: "clear",              label: "Clear",               icon: <CheckCircle size={13} /> },
+  { value: "request_more_testing", label: "Request More Testing", icon: <TestTubeDiagonal size={13} /> },
+  { value: "close_case",         label: "Close Case",          icon: <XCircle size={13} /> },
 ];
-
-// Native <select> kept deliberately rather than swapped for the shadcn
-// Select: Base UI's Select is a composite widget driven by `onValueChange`,
-// and adopting it would mean rewriting this field's existing onChange
-// handler. These classes mirror ui/input.tsx so it still reads as part of
-// the same form.
-const NATIVE_SELECT_CLASSES =
-  "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 interface DecisionPanelProps {
   athleteId: number;
@@ -74,125 +66,172 @@ function DecisionPanel({ athleteId }: DecisionPanelProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Investigator Decision</CardTitle>
-      </CardHeader>
-
-      <CardContent>
-        {!caseData && (
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="case-notes" className="text-muted-foreground">
-              Notes (optional)
-            </Label>
-            <Textarea
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* No case yet */}
+      {!caseData && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <p style={{ fontSize: "0.8125rem", color: "var(--muted-foreground)", margin: 0, lineHeight: 1.5 }}>
+            Open a case to begin the formal investigation workflow for this athlete.
+          </p>
+          <div>
+            <label htmlFor="case-notes" className="form-label">Case Notes (optional)</label>
+            <textarea
               id="case-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
               placeholder="Initial notes for this case…"
+              className="form-textarea"
             />
-            <Button onClick={handleOpenCase} disabled={openingCase} className="w-fit">
-              {openingCase ? "Opening…" : "Open Case"}
-            </Button>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              onClick={handleOpenCase}
+              disabled={openingCase}
+              className="btn btn-primary"
+            >
+              <FolderOpen size={14} />
+              {openingCase ? "Opening…" : "Open Investigation Case"}
+            </button>
             {openCaseError && (
-              <Alert variant="destructive">
-                <AlertTitle>Unable to open case</AlertTitle>
-              </Alert>
+              <span style={{ fontSize: "0.8125rem", color: "#ef4444" }}>Failed to open case</span>
             )}
           </div>
-        )}
+        </div>
+      )}
 
-        {caseData && (
-          <div className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge
-                className={
-                  caseData.status === "closed"
-                    ? "bg-muted text-muted-foreground"
-                    : "bg-success/10 text-success"
-                }
-              >
-                Case {caseData.status}
-              </Badge>
-              <span className="text-sm text-muted-foreground">
-                Opened <span className="font-mono tabular-nums">{caseData.opened_at}</span>
-                {caseData.closed_at ? (
-                  <>
-                    {" · "}Closed{" "}
-                    <span className="font-mono tabular-nums">{caseData.closed_at}</span>
-                  </>
-                ) : (
-                  ""
-                )}
-              </span>
-            </div>
+      {/* Case open */}
+      {caseData && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Status */}
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+            <span className={`badge ${caseData.status === "closed" ? "badge-closed" : "badge-open"}`}>
+              Case {caseData.status}
+            </span>
+            <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}>
+              #{caseData.id}
+            </span>
+            <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
+              Opened {caseData.opened_at}
+              {caseData.closed_at ? ` · Closed ${caseData.closed_at}` : ""}
+            </span>
+          </div>
 
-            {caseData.investigator_notes && (
-              <p className="text-sm text-foreground">{caseData.investigator_notes}</p>
-            )}
+          {/* Notes */}
+          {caseData.investigator_notes && (
+            <p
+              style={{
+                fontSize: "0.8125rem",
+                color: "var(--foreground)",
+                margin: 0,
+                padding: "10px 12px",
+                background: "var(--muted)",
+                borderRadius: 6,
+                border: "1px solid var(--border)",
+                lineHeight: 1.5,
+              }}
+            >
+              {caseData.investigator_notes}
+            </p>
+          )}
 
-            {auditLogs.length > 0 && (
-              <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
+          {/* Audit trail */}
+          {auditLogs.length > 0 && (
+            <div>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted-foreground)", marginBottom: 8 }}>
+                Audit Trail
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
                 {auditLogs.map((log) => (
-                  <li key={log.id}>
-                    <span className="font-mono tabular-nums">{log.timestamp}</span> — {log.actor}:{" "}
-                    {log.action}
-                  </li>
+                  <div key={log.id} className="timeline-item">
+                    <div className="timeline-dot" style={{ background: "var(--primary)" }} />
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
+                        <Clock size={11} color="var(--muted-foreground)" />
+                        <span style={{ fontSize: "0.6875rem", color: "var(--muted-foreground)", fontFamily: "var(--font-mono)" }}>
+                          {log.timestamp}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: "0.8125rem", color: "var(--foreground)" }}>
+                        <strong style={{ fontWeight: 600 }}>{log.actor}</strong>
+                        <span style={{ color: "var(--muted-foreground)" }}> — </span>
+                        {log.action}
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </ul>
-            )}
+              </div>
+            </div>
+          )}
 
-            {caseData.status === "open" && (
-              <>
-                <Separator />
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="decision-action" className="text-muted-foreground">
-                    Action
-                  </Label>
-                  <select
-                    id="decision-action"
-                    value={action}
-                    onChange={(e) => setAction(e.target.value as DecisionAction)}
-                    className={NATIVE_SELECT_CLASSES}
-                  >
-                    {DECISION_ACTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+          {/* Decision form */}
+          {caseData.status === "open" && (
+            <div
+              style={{
+                borderTop: "1px solid var(--border)",
+                paddingTop: 14,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>
+                Log Decision
+              </div>
 
-                  <Label htmlFor="decision-investigator" className="text-muted-foreground">
-                    Investigator
-                  </Label>
-                  <Input
-                    id="decision-investigator"
-                    type="text"
-                    value={investigator}
-                    onChange={(e) => setInvestigator(e.target.value)}
-                    placeholder="Your name"
-                  />
+              <div>
+                <label htmlFor="decision-action" className="form-label">Action</label>
+                <select
+                  id="decision-action"
+                  value={action}
+                  onChange={(e) => setAction(e.target.value as DecisionAction)}
+                  className="form-select"
+                >
+                  {DECISION_ACTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
 
-                  <Button
-                    onClick={handleLogDecision}
-                    disabled={loggingDecision || !investigator.trim()}
-                    className="w-fit"
-                  >
-                    {loggingDecision ? "Logging…" : "Log Decision"}
-                  </Button>
-                  {decisionError && (
-                    <Alert variant="destructive">
-                      <AlertTitle>Unable to log decision</AlertTitle>
-                    </Alert>
+              <div>
+                <label htmlFor="decision-investigator" className="form-label">Investigator Name</label>
+                <input
+                  id="decision-investigator"
+                  type="text"
+                  value={investigator}
+                  onChange={(e) => setInvestigator(e.target.value)}
+                  placeholder="Your name"
+                  className="form-input"
+                />
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <button
+                  onClick={handleLogDecision}
+                  disabled={loggingDecision || !investigator.trim()}
+                  className="btn btn-primary"
+                >
+                  {loggingDecision ? (
+                    <>
+                      <div className="spinner" style={{ width: 12, height: 12, borderWidth: 1.5 }} />
+                      Logging…
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={13} />
+                      Log Decision
+                    </>
                   )}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                </button>
+                {decisionError && (
+                  <span style={{ fontSize: "0.8125rem", color: "#ef4444" }}>Failed to log decision</span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

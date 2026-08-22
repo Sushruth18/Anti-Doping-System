@@ -5,48 +5,84 @@ import {
   Legend,
   Line,
   ResponsiveContainer,
-  Scatter,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import type { TrajectoryPoint } from "../types/api";
+import { useTheme } from "../lib/theme";
 
 interface TrajectoryChartProps {
   points: TrajectoryPoint[];
 }
 
 interface ChartDatum extends TrajectoryPoint {
-  // Recharts has no native "band between two values" mark — the standard
-  // way to shade a confidence band is to stack an invisible Area up to
-  // ci_lower, then stack a second, visible Area of just the remaining
-  // range (ci_upper - ci_lower) on top of it.
   ci_range: number;
 }
 
 function TrajectoryTooltip({
   active,
   payload,
+  isDark,
 }: {
   active?: boolean;
   payload?: { payload: ChartDatum }[];
+  isDark: boolean;
 }) {
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
 
   return (
-    <div className="rounded border border-border bg-card px-3 py-2 text-sm text-foreground shadow">
-      <div className="font-medium">{point.date}</div>
-      <div className="text-red-600">Observed: {point.observed}</div>
-      <div className="text-indigo-600">Expected: {point.expected}</div>
-      <div className="text-gray-500">
-        95% CI: [{point.ci_lower}, {point.ci_upper}]
+    <div
+      style={{
+        background: isDark ? "#0f172a" : "#ffffff",
+        border: isDark ? "1px solid #1e293b" : "1px solid #cbd5e1",
+        borderRadius: 8,
+        padding: "10px 14px",
+        fontSize: "0.75rem",
+        boxShadow: isDark ? "0 8px 24px rgba(0,0,0,0.5)" : "0 4px 16px rgba(0,0,0,0.1)",
+        fontFamily: "var(--font-sans)",
+        color: isDark ? "#f8fafc" : "#0f172a",
+      }}
+    >
+      <div style={{ fontWeight: 600, color: isDark ? "#f8fafc" : "#0f172a", marginBottom: 6 }}>
+        Sample Date: {point.date}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 3 }}>
+        <span style={{ color: "var(--muted-foreground)" }}>Observed:</span>
+        <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--destructive)" }}>
+          {point.observed.toFixed(2)}
+        </span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 3 }}>
+        <span style={{ color: "var(--muted-foreground)" }}>Expected Mean:</span>
+        <span style={{ fontFamily: "var(--font-mono)", fontWeight: 700, color: isDark ? "#60a5fa" : "#2563eb" }}>
+          {point.expected.toFixed(2)}
+        </span>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 12,
+          marginTop: 4,
+          paddingTop: 4,
+          borderTop: isDark ? "1px solid #1e293b" : "1px solid #e2e8f0",
+        }}
+      >
+        <span style={{ color: "var(--muted-foreground)" }}>95% Bayesian CI:</span>
+        <span style={{ fontFamily: "var(--font-mono)", color: isDark ? "#cbd5e1" : "#475569" }}>
+          [{point.ci_lower.toFixed(2)}, {point.ci_upper.toFixed(2)}]
+        </span>
       </div>
     </div>
   );
 }
 
-function TrajectoryChart({ points }: TrajectoryChartProps) {
+export function TrajectoryChart({ points }: TrajectoryChartProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const data: ChartDatum[] = points.map((point) => ({
     ...point,
     ci_range: point.ci_upper - point.ci_lower,
@@ -54,15 +90,40 @@ function TrajectoryChart({ points }: TrajectoryChartProps) {
 
   return (
     <ResponsiveContainer width="100%" height={320}>
-      <ComposedChart data={data} margin={{ top: 16, right: 24, bottom: 8, left: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis domain={["auto", "auto"]} />
-        <Tooltip content={<TrajectoryTooltip />} />
-        <Legend />
+      <ComposedChart data={data} margin={{ top: 12, right: 20, bottom: 4, left: -10 }}>
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke={isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}
+          vertical={false}
+        />
+        <XAxis
+          dataKey="date"
+          tick={{ fill: isDark ? "#94a3b8" : "#64748b", fontSize: 11, fontFamily: "var(--font-mono)" }}
+          axisLine={{ stroke: isDark ? "#1e293b" : "#e2e8f0" }}
+          tickLine={false}
+        />
+        <YAxis
+          domain={["auto", "auto"]}
+          tick={{ fill: isDark ? "#94a3b8" : "#64748b", fontSize: 11, fontFamily: "var(--font-mono)" }}
+          axisLine={{ stroke: isDark ? "#1e293b" : "#e2e8f0" }}
+          tickLine={false}
+          width={45}
+        />
+        <Tooltip content={<TrajectoryTooltip isDark={isDark} />} />
+        <Legend
+          iconType="circle"
+          iconSize={8}
+          verticalAlign="top"
+          align="right"
+          wrapperStyle={{
+            fontSize: "0.75rem",
+            color: isDark ? "#94a3b8" : "#64748b",
+            paddingBottom: "10px",
+            fontFamily: "var(--font-sans)",
+          }}
+        />
 
-        {/* Invisible spacer area — establishes the stack's floor at
-            ci_lower without drawing anything. */}
+        {/* Invisible spacer area to establish the lower CI floor */}
         <Area
           dataKey="ci_lower"
           stackId="ci-band"
@@ -73,28 +134,40 @@ function TrajectoryChart({ points }: TrajectoryChartProps) {
           name="ci_lower"
           tooltipType="none"
         />
-        {/* Visible band — stacks on top of ci_lower up to ci_upper. */}
+        {/* Visible 95% Confidence Interval band */}
         <Area
           dataKey="ci_range"
           stackId="ci-band"
           stroke="none"
-          fill="#1D4ED8"
-          fillOpacity={0.2}
-          isAnimationActive={false}
-          name="95% CI band"
+          fill={isDark ? "#3b82f6" : "#2563eb"}
+          fillOpacity={isDark ? 0.16 : 0.12}
+          isAnimationActive={true}
+          animationDuration={700}
+          name="95% Bayesian CI Band"
           tooltipType="none"
         />
 
         <Line
           dataKey="expected"
-          stroke="#1D4ED8"
+          stroke={isDark ? "#60a5fa" : "#2563eb"}
           strokeWidth={2}
           dot={false}
-          isAnimationActive={false}
-          name="Expected (baseline)"
+          isAnimationActive={true}
+          animationDuration={700}
+          name="Bayesian Posterior Expected"
+          strokeDasharray="4 3"
         />
 
-        <Scatter dataKey="observed" fill="#B91C1C" name="Observed" />
+        <Line
+          dataKey="observed"
+          stroke="var(--destructive)"
+          strokeWidth={2}
+          dot={{ r: 4.5, fill: "var(--destructive)", strokeWidth: 1.5, stroke: "#ffffff" }}
+          activeDot={{ r: 7, fill: "var(--destructive)" }}
+          isAnimationActive={true}
+          animationDuration={750}
+          name="Observed Sample"
+        />
       </ComposedChart>
     </ResponsiveContainer>
   );
