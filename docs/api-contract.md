@@ -569,7 +569,7 @@ targets.
 |---|---|---|---|
 | `athlete_id` | integer | yes | `404` if unknown. |
 | `pattern` | string enum | no | `"micro_dosing"` (default) → biomarker `hb` (EPO). `"steroid_micro_dosing"` → biomarker `te_ratio`. `422` for anything else. |
-| `baseline_window` | integer | no | Default `2`, minimum `2`. Number of the athlete's **earliest** chronological samples used only to establish the CUSUM baseline mean/std (plain mean/std of that window, not the Bayesian posterior — see below); those samples are held out from the CUSUM detection series itself. `422` if `< 2`. |
+| `baseline_window` | integer | no | Default `5`, minimum `2`. Number of the athlete's **earliest** chronological samples used only to establish the CUSUM baseline mean/std (plain mean/std of that window, not the Bayesian posterior — see below); those samples are held out from the CUSUM detection series itself. `422` if `< 2`. |
 
 **Response `200`** — `EvasionSimulationResponse`
 

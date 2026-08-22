@@ -1,4 +1,5 @@
 import json
+import statistics
 from datetime import date, datetime
 from pathlib import Path
 
@@ -116,10 +117,10 @@ def test_simulation_evasion_epo_micro_dosing_smoke(client, db_session):
         "threshold",
     }
     assert body["cusum_result"]["threshold"] == 5.0
-    # default baseline_window=2: the earliest 2 samples are held out to
+    # default baseline_window=5: the earliest 5 samples are held out to
     # establish the baseline, CUSUM only runs against what's left.
-    assert body["baseline_window_used"] == 2
-    assert body["detection_sample_count"] == body["sample_count"] - 2
+    assert body["baseline_window_used"] == 5
+    assert body["detection_sample_count"] == body["sample_count"] - 5
     assert len(body["cusum_result"]["cusum_upper"]) == body["detection_sample_count"]
     assert len(body["cusum_result"]["cusum_lower"]) == body["detection_sample_count"]
 
@@ -139,8 +140,8 @@ def test_simulation_evasion_steroid_micro_dosing_smoke(client, db_session):
     assert body["biomarker"] == "te_ratio"
     assert body["pattern"] == "steroid_micro_dosing"
     assert body["sample_count"] == len(body["single_sample_scores"])
-    assert body["baseline_window_used"] == 2
-    assert body["detection_sample_count"] == body["sample_count"] - 2
+    assert body["baseline_window_used"] == 5
+    assert body["detection_sample_count"] == body["sample_count"] - 5
 
 
 def test_simulation_evasion_unknown_athlete_404(client, db_session):
@@ -154,7 +155,7 @@ def test_simulation_evasion_insufficient_samples_for_baseline_split_422(client, 
     # so the thin-history case can no longer be reached by picking a
     # seeded athlete and cranking baseline_window up -- construct a
     # throwaway athlete with fewer samples than baseline_window + 3
-    # requires directly. Default baseline_window=2 needs 2+3=5 samples
+    # requires directly. Default baseline_window=5 needs 5+3=8 samples
     # minimum; this athlete only has 3.
     athlete = Athlete(name="Insufficient Samples Athlete", sport="Cycling", age=25)
     db_session.add(athlete)
@@ -182,6 +183,61 @@ def test_simulation_evasion_insufficient_samples_for_baseline_split_422(client, 
 
     assert response.status_code == 422
     assert "insufficient samples for reliable baseline+detection split" in response.json()["detail"]
+
+
+def test_simulation_evasion_default_baseline_window_is_five(client, db_session):
+    # Confirms the new default (5, changed from 2) holds out samples 1-5 as
+    # the CUSUM calibration window and scoring begins at sample 6 -- not
+    # sample 3, which is where the old default of 2 would have started.
+    athlete = Athlete(
+        name="Default Baseline Window Athlete",
+        sport="Cycling",
+        age=25,
+        baseline_prior_json=(
+            '{"hb": {"mean": 15.4, "std": 0.75}, "hct": {"mean": 45.0, "std": 2.0}, '
+            '"ret_pct": {"mean": 1.05, "std": 0.26}, "te_ratio": {"mean": 1.15, "std": 0.22}, '
+            '"off_score": {"mean": 92.5, "std": 9.5}}'
+        ),
+    )
+    db_session.add(athlete)
+    db_session.commit()
+    db_session.refresh(athlete)
+
+    hb_values = [14.0, 14.1, 13.9, 14.05, 13.95, 16.5, 16.6, 16.7]
+    for i, hb in enumerate(hb_values):
+        db_session.add(
+            Sample(
+                athlete_id=athlete.id,
+                date=date(2026, 1, 1 + i),
+                hb=hb,
+                hct=42.0,
+                ret_pct=1.5,
+                off_score=66.51530771650467,
+                te_ratio=1.0,
+            )
+        )
+    db_session.commit()
+
+    response = client.get("/simulation/evasion", params={"athlete_id": athlete.id})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["baseline_window_used"] == 5
+    assert body["detection_sample_count"] == len(hb_values) - 5
+    assert len(body["cusum_result"]["cusum_upper"]) == len(hb_values) - 5
+    assert len(body["cusum_result"]["cusum_lower"]) == len(hb_values) - 5
+
+    # The held-out baseline is samples 1-5 (hb_values[:5]); CUSUM's first
+    # scored point is sample 6 (hb_values[5] == 16.5), standardized against
+    # that baseline mean/std -- not sample 3, which is what baseline_window=2
+    # used to score first.
+    baseline_slice = hb_values[:5]
+    baseline_mean = statistics.mean(baseline_slice)
+    baseline_std = statistics.stdev(baseline_slice)
+    k = 0.5
+    expected_first_z = (hb_values[5] - baseline_mean) / baseline_std
+    expected_first_upper = max(0.0, expected_first_z - k)
+    assert body["cusum_result"]["cusum_upper"][0] == pytest.approx(expected_first_upper)
 
 
 def test_simulation_evasion_baseline_window_below_two_422(client, db_session):

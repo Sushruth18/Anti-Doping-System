@@ -70,7 +70,7 @@ class EvasionSimulationResponse(BaseModel):
 def simulate_evasion(
     athlete_id: int = Query(...),
     pattern: Literal["micro_dosing", "steroid_micro_dosing"] = Query(default="micro_dosing"),
-    baseline_window: int = Query(default=2),
+    baseline_window: int = Query(default=5),
     db: Session = Depends(get_db),
 ) -> EvasionSimulationResponse:
     athlete = db.query(Athlete).filter(Athlete.id == athlete_id).first()
