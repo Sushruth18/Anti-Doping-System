@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import math
 from datetime import date as date_type
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, field_serializer
@@ -38,7 +40,7 @@ _BIOMARKER_UNITS = {
 _TRAJECTORY_CI_LEVEL = 0.95
 
 
-def _compute_latest_uncertainty_score(athlete_id: int, db: Session) -> float | None:
+def _compute_latest_uncertainty_score(athlete_id: int, db: Session) -> Optional[float]:
     """Live-computed `compute_athlete_uncertainty_score` for an athlete's
     current posterior and latest sample.
 
@@ -120,11 +122,11 @@ class AthleteListItem(BaseModel):
     id: int
     name: str
     sport: str
-    age: int | None
-    latest_anomaly_score: float | None
-    latest_uncertainty_score: float | None
+    age: Optional[int]
+    latest_anomaly_score: Optional[float]
+    latest_uncertainty_score: Optional[float]
     priority_score: float
-    last_sample_date: date_type | None
+    last_sample_date: Optional[date_type]
     scored: bool
 
 
@@ -132,7 +134,7 @@ class AthleteDetail(BaseModel):
     id: int
     name: str
     sport: str
-    age: int | None
+    age: Optional[int]
     baseline_prior: BaselinePrior
     samples: list[SampleOut]
 
@@ -229,8 +231,8 @@ class AnomalyDetail(BaseModel):
 
 @router.get("/athletes", response_model=list[AthleteListItem])
 def list_athletes(
-    sport: str | None = Query(default=None),
-    sort: str | None = Query(default=None),
+    sport: Optional[str] = Query(default=None),
+    sort: Optional[str] = Query(default=None),
     db: Session = Depends(get_db),
 ) -> list[AthleteListItem]:
     if sort is not None and sort != "priority":

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import statistics
-from typing import Literal
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -47,7 +49,7 @@ class CusumResult(BaseModel):
     cusum_upper: list[float]
     cusum_lower: list[float]
     flagged: bool
-    flagged_at_index: int | None
+    flagged_at_index: Optional[int]
     threshold: float
 
 

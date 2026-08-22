@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
@@ -33,13 +33,13 @@ DecisionAction = Literal["escalate", "clear", "request_more_testing", "close_cas
 _CLOSING_ACTION: DecisionAction = "close_case"
 
 
-def _parse_details_json(details_json: str | None) -> dict[str, object]:
+def _parse_details_json(details_json: Optional[str]) -> dict[str, object]:
     return json.loads(details_json) if details_json else {}
 
 
 class NewCaseInput(BaseModel):
     athlete_id: int
-    notes: str | None = None
+    notes: Optional[str] = None
 
 
 class CaseOut(BaseModel):
@@ -47,15 +47,15 @@ class CaseOut(BaseModel):
     athlete_id: int
     status: Literal["open", "closed"]
     opened_at: datetime
-    closed_at: datetime | None
-    investigator_notes: str | None
+    closed_at: Optional[datetime]
+    investigator_notes: Optional[str]
 
     @field_serializer("opened_at")
     def _serialize_opened_at(self, value: datetime) -> str:
         return value.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     @field_serializer("closed_at")
-    def _serialize_closed_at(self, value: datetime | None) -> str | None:
+    def _serialize_closed_at(self, value: Optional[datetime]) -> Optional[str]:
         return value.strftime("%Y-%m-%dT%H:%M:%SZ") if value is not None else None
 
     @classmethod
@@ -79,7 +79,7 @@ class AuditLogOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    case_id: int | None
+    case_id: Optional[int]
     athlete_id: int
     actor: str
     action: str
@@ -235,7 +235,7 @@ class DecisionEvent(_TimestampedEvent):
 
 
 AuditEvent = Annotated[
-    SampleEvent | AnomalyEvent | CaseOpenedEvent | CaseClosedEvent | DecisionEvent,
+    Union[SampleEvent, AnomalyEvent, CaseOpenedEvent, CaseClosedEvent, DecisionEvent],
     Field(discriminator="type"),
 ]
 

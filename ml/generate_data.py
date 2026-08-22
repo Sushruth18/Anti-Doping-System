@@ -221,7 +221,7 @@ def correlated_biomarker_walks(
 
 def generate_name(rng: Random, index: int) -> str:
     first = FIRST_NAMES[index % len(FIRST_NAMES)]
-    last = LAST_NAMES[(index * 7) % len(LAST_NAMES)]
+    last = LAST_NAMES[(index // len(FIRST_NAMES)) % len(LAST_NAMES)]
     suffix = (index // (len(FIRST_NAMES) * len(LAST_NAMES))) + 1
     if suffix > 1:
         return f"{first} {last} {suffix}"

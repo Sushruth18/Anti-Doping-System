@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from datetime import date as date_type
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -13,8 +16,8 @@ class Athlete(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     sport: Mapped[str] = mapped_column(String, nullable=False)
-    age: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    baseline_prior_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    age: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    baseline_prior_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
 
 class Sample(Base):
@@ -52,17 +55,17 @@ class Case(Base):
     athlete_id: Mapped[int] = mapped_column(ForeignKey("athletes.id"), nullable=False)
     status: Mapped[str] = mapped_column(String, nullable=False)
     opened_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    investigator_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    closed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    investigator_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    case_id: Mapped[int | None] = mapped_column(ForeignKey("cases.id"), nullable=True)
+    case_id: Mapped[Optional[int]] = mapped_column(ForeignKey("cases.id"), nullable=True)
     athlete_id: Mapped[int] = mapped_column(ForeignKey("athletes.id"), nullable=False)
     actor: Mapped[str] = mapped_column(String, nullable=False)
     action: Mapped[str] = mapped_column(String, nullable=False)
     timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    details_json: Mapped[str | None] = mapped_column(Text, nullable=True)
+    details_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

@@ -1,5 +1,6 @@
 import type {
   AnomalyDetail,
+  AthleteDetail,
   AthleteListItem,
   AuditTimelineResponse,
   Case,
@@ -20,6 +21,14 @@ export async function getAthletes(): Promise<AthleteListItem[]> {
     throw new Error(`GET /athletes failed: ${response.status}`);
   }
   return response.json() as Promise<AthleteListItem[]>;
+}
+
+export async function getAthlete(id: number): Promise<AthleteDetail> {
+  const response = await fetch(`${API_BASE_URL}/athletes/${id}`);
+  if (!response.ok) {
+    throw new Error(`GET /athletes/${id} failed: ${response.status}`);
+  }
+  return response.json() as Promise<AthleteDetail>;
 }
 
 export async function getAthleteTrajectory(id: number): Promise<TrajectoryResponse> {
@@ -50,10 +59,27 @@ export async function getSimulationEvasion(
   athleteId: number,
   pattern?: EvasionPattern
 ): Promise<EvasionSimulationResponse> {
-  const params = new URLSearchParams({ athlete_id: String(athleteId) });
-  if (pattern) params.set("pattern", pattern);
-  const response = await fetch(`${API_BASE_URL}/simulation/evasion?${params}`);
+  // Try the default baseline_window=2 first. Some athletes have identical Hb
+  // values in their first two samples (zero variance), which causes the backend
+  // to return 422. In that case we retry with baseline_window=3, which almost
+  // always has enough variance. This is a frontend-only retry — no backend
+  // logic is modified.
+  const buildParams = (window: number) => {
+    const p = new URLSearchParams({ athlete_id: String(athleteId), baseline_window: String(window) });
+    if (pattern) p.set("pattern", pattern);
+    return p;
+  };
+
+  let response = await fetch(`${API_BASE_URL}/simulation/evasion?${buildParams(2)}`);
+
+  if (response.status === 422) {
+    // Zero-variance baseline — retry with a wider window
+    response = await fetch(`${API_BASE_URL}/simulation/evasion?${buildParams(3)}`);
+  }
+
   if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    console.error(`GET /simulation/evasion failed (${response.status}):`, detail);
     throw new Error(`GET /simulation/evasion failed: ${response.status}`);
   }
   return response.json() as Promise<EvasionSimulationResponse>;
