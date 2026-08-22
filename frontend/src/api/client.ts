@@ -59,22 +59,25 @@ export async function getSimulationEvasion(
   athleteId: number,
   pattern?: EvasionPattern
 ): Promise<EvasionSimulationResponse> {
-  // Try the default baseline_window=2 first. Some athletes have identical Hb
-  // values in their first two samples (zero variance), which causes the backend
-  // to return 422. In that case we retry with baseline_window=3, which almost
-  // always has enough variance. This is a frontend-only retry — no backend
-  // logic is modified.
-  const buildParams = (window: number) => {
-    const p = new URLSearchParams({ athlete_id: String(athleteId), baseline_window: String(window) });
+  // Don't send baseline_window on the first request -- let the backend's own
+  // default (5, per simulation.py) apply. A 422 there means either the
+  // athlete has fewer than baseline_window + 3 total samples, or the
+  // earliest baseline_window samples have zero variance for the target
+  // biomarker; retry with baseline_window=2, the contract's documented
+  // floor (api-contract.md), which needs the fewest total samples (5) and
+  // gives the retry the best chance of succeeding. This is a frontend-only
+  // retry — no backend logic is modified.
+  const buildParams = (window?: number) => {
+    const p = new URLSearchParams({ athlete_id: String(athleteId) });
+    if (window !== undefined) p.set("baseline_window", String(window));
     if (pattern) p.set("pattern", pattern);
     return p;
   };
 
-  let response = await fetch(`${API_BASE_URL}/simulation/evasion?${buildParams(2)}`);
+  let response = await fetch(`${API_BASE_URL}/simulation/evasion?${buildParams()}`);
 
   if (response.status === 422) {
-    // Zero-variance baseline — retry with a wider window
-    response = await fetch(`${API_BASE_URL}/simulation/evasion?${buildParams(3)}`);
+    response = await fetch(`${API_BASE_URL}/simulation/evasion?${buildParams(2)}`);
   }
 
   if (!response.ok) {
